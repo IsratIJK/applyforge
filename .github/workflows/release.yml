@@ -1,0 +1,72 @@
+# ============================================================================
+# Auto-Release — creates a GitHub Release when a version tag is pushed.
+# ============================================================================
+#
+# Usage:
+#   1. Add the new version block to CHANGELOG.md
+#   2. Commit and push
+#   3. Tag the commit and push the tag:
+#        git tag v1.3.0
+#        git push origin v1.3.0
+#   GitHub creates the release automatically with the changelog body.
+#
+# Tag format: v<major>.<minor>.<patch>  (must match a [X.Y.Z] entry in CHANGELOG.md)
+# ============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract changelog entry
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # strip leading 'v' from tag name
+          # Pull the block between "## [VERSION]" and the next "## [" heading
+          BODY=$(awk -v ver="$VERSION" '
+            /^\#\# \[/{
+              if (found) exit
+              if (index($0, "["ver"]")) found=1
+              next
+            }
+            found && /^---$/ { exit }
+            found { print }
+          ' CHANGELOG.md)
+
+          if [ -z "$BODY" ]; then
+            echo "ERROR: No changelog entry found for version $VERSION" >&2
+            exit 1
+          fi
+
+          # Write multiline output safely
+          {
+            echo "body<<CHANGELOG_EOF"
+            echo "$BODY"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ steps.changelog.outputs.version }}"
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
