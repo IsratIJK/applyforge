@@ -27,7 +27,7 @@ Actions Variables — no core code changes required.
 12. [OpenAI Cost Optimization](#openai-cost-optimization)
 13. [Generated Output Structure](#generated-output-structure)
 14. [Troubleshooting](#troubleshooting)
-15. [Changelog](#changelog)
+15. [Changelog](CHANGELOG.md)
 
 ---
 
@@ -621,60 +621,4 @@ Locally, check `logs/automation_YYYYMMDD.log`.
 
 ## Changelog
 
-### v1.2.0 — 2026-05-09
-
-**Fixed: Google Drive uploads fail with `403 storageQuotaExceeded`**
-
-Service accounts have zero personal Drive storage quota and cannot write files
-to regular "My Drive" folders.  This release switches Drive uploads to OAuth2
-user credentials so files are uploaded as your real Google account.
-
-- Added `scripts/generate_refresh_token.py` — one-time local script that opens
-  a browser for Google login and prints the three credential values to save as
-  GitHub Secrets.
-- Added OAuth2 credential fields to `services/config.py`:
-  `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
-  `GOOGLE_OAUTH_REFRESH_TOKEN`.
-- Updated `services/drive.py` to prefer OAuth2 credentials over service-account
-  credentials when the refresh token is present.  Service-account auth remains
-  as a fallback for Shared Drive setups.
-- Added `GOOGLE_DRIVE_FOLDER_ID` config — set this to your Drive folder ID
-  (from the folder URL) for reliable targeting without name-based search.
-- Added `supportsAllDrives=True` and `includeItemsFromAllDrives=True` to all
-  Drive API calls for forward compatibility.
-- Added `google-auth-oauthlib>=1.2.0` to `requirements.txt`.
-- Added `oauth_client.json` to `.gitignore`.
-- Updated GitHub Actions workflow with the three new OAuth2 secrets.
-- Added dedicated [Google Drive Setup](#google-drive-setup) section to README.
-
-### v1.1.0 — 2026-05-09
-
-**Fixed: blank directories missing from cloned repositories**
-
-- Added `.gitkeep` files to `raw_resumes/`, `output/`, and `logs/`.
-- Changed `.gitignore` patterns from `dir/` to `dir/*` so negation rules
-  for `.gitkeep` files take effect correctly.
-- Removed `resumes/*.txt` from `.gitignore` — profiles are committed directly
-  since this is a private repository, eliminating the need for GitHub Secrets
-  to hold resume content.
-
-**Fixed: GitHub Actions Node.js 20 deprecation warning**
-
-- Added `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` at workflow level to opt
-  into Node.js 24 ahead of the September 2026 forced migration.
-
-### v1.0.0 — 2026-05-08
-
-Initial release.
-
-- Daily automation via GitHub Actions (`0 19 * * *` UTC = 1 AM BST).
-- Google Sheets integration: reads `not applied` rows, writes status updates.
-- Job-page scraping with `requests` + `BeautifulSoup` (no headless browser).
-- OpenAI cover letter and recruiter email generation with exponential backoff.
-- Google Drive upload organized into `Applications/<Company>/` sub-folders.
-- Two-phase resume pipeline: preprocess PDFs once, use compact `.txt` profiles
-  at runtime (~55% token reduction per job).
-- Output formats: `.md` (plain text) and `.docx` (formatted Word document).
-- All credentials stored as GitHub Secrets — no JSON files on disk.
-- Manual workflow trigger with `max_jobs` and `log_level` overrides.
-- Artifact upload of generated documents (30-day retention).
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
