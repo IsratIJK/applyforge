@@ -227,15 +227,18 @@ __marimo__/
 !example.env
 
 # Generated outputs (uploaded to Google Drive — no need to commit)
-output/
-logs/
+output/*
+!output/.gitkeep
+logs/*
+!logs/.gitkeep
 
 # Raw PDF resumes (sensitive personal documents)
-raw_resumes/
+raw_resumes/*
+!raw_resumes/.gitkeep
 
 # Optimized resume profiles (contain personal info)
 resumes/*.txt
-# Keep the resumes/ directory tracked
+# Keep placeholder dirs tracked so cloned repos have the expected structure
 !resumes/.gitkeep
 
 # Google credential JSON files (should only live as env-var strings)
