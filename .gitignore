@@ -239,6 +239,7 @@ raw_resumes/*
 # Keep resumes/ dir tracked (private repo — .txt profiles committed directly)
 !resumes/.gitkeep
 
-# Google credential JSON files (should only live as env-var strings)
+# Google credential JSON files (should only live as env-var strings or secrets)
 service_account*.json
 credentials*.json
+oauth_client.json

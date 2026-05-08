@@ -49,8 +49,29 @@ class Config:
         default_factory=lambda: os.environ.get("GOOGLE_SHEET_NAME", "Job Applications")
     )
     google_drive_parent_folder: str = field(
-        # Top-level Drive folder that holds all company sub-folders
+        # Top-level Drive folder name (used only if google_drive_folder_id is not set)
         default_factory=lambda: os.environ.get("GOOGLE_DRIVE_PARENT_FOLDER", "Applications")
+    )
+    google_drive_folder_id: str = field(
+        # Preferred: explicit folder ID from Drive URL.
+        # Get it from the URL: drive.google.com/drive/folders/<ID>
+        default_factory=lambda: os.environ.get("GOOGLE_DRIVE_FOLDER_ID", "")
+    )
+
+    # ------------------------------------------------------------------ #
+    # OAuth2 user credentials (preferred over service account for Drive)  #
+    # ------------------------------------------------------------------ #
+    # When these three are set, Drive uploads run as the real Google user.
+    # Files are owned by the user → charged to user's Drive quota → no 403.
+    # Generate once with: python scripts/generate_refresh_token.py
+    google_oauth_client_id: str = field(
+        default_factory=lambda: os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
+    )
+    google_oauth_client_secret: str = field(
+        default_factory=lambda: os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+    )
+    google_oauth_refresh_token: str = field(
+        default_factory=lambda: os.environ.get("GOOGLE_OAUTH_REFRESH_TOKEN", "")
     )
 
     # ------------------------------------------------------------------ #

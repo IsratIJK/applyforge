@@ -8,9 +8,10 @@ openai>=1.30.0
 
 # --- Google APIs ---
 gspread>=6.0.0                      # Google Sheets read/write
-google-auth>=2.29.0                 # Service-account credential handling
+google-auth>=2.29.0                 # Service-account and OAuth2 credential handling
 google-api-python-client>=2.127.0   # Google Drive v3 REST client
 google-auth-httplib2>=0.2.0         # HTTP transport for google-auth
+google-auth-oauthlib>=1.2.0         # OAuth2 flow for user credentials (token refresh)
 
 # --- Web scraping ---
 requests>=2.31.0
