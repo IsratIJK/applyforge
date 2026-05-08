@@ -17,15 +17,17 @@ Actions Variables — no core code changes required.
 2. [Project Structure](#project-structure)
 3. [Prerequisites](#prerequisites)
 4. [Google Cloud Setup](#google-cloud-setup)
-5. [Spreadsheet Setup](#spreadsheet-setup)
-6. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
-7. [Local Development Setup](#local-development-setup)
-8. [GitHub Actions Setup](#github-actions-setup)
-9. [Configuration Reference](#configuration-reference)
-10. [Cron Schedule Customization](#cron-schedule-customization)
-11. [OpenAI Cost Optimization](#openai-cost-optimization)
-12. [Generated Output Structure](#generated-output-structure)
-13. [Troubleshooting](#troubleshooting)
+5. [Google Drive Setup](#google-drive-setup)
+6. [Spreadsheet Setup](#spreadsheet-setup)
+7. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
+8. [Local Development Setup](#local-development-setup)
+9. [GitHub Actions Setup](#github-actions-setup)
+10. [Configuration Reference](#configuration-reference)
+11. [Cron Schedule Customization](#cron-schedule-customization)
+12. [OpenAI Cost Optimization](#openai-cost-optimization)
+13. [Generated Output Structure](#generated-output-structure)
+14. [Troubleshooting](#troubleshooting)
+15. [Changelog](#changelog)
 
 ---
 
@@ -45,7 +47,7 @@ services/sheets.py
     │
     ├─► services/document_generator.py (.md + .docx output files)
     │
-    └─► services/drive.py            (upload to Google Drive)
+    └─► services/drive.py            (upload to Google Drive as your account)
     │
     ▼  (update row status → "draft generated")
 Google Spreadsheet
@@ -53,6 +55,10 @@ Google Spreadsheet
 
 The automation runs once per day.  Each job row is processed independently —
 one failure does not stop the rest.
+
+**Drive authentication** uses OAuth2 user credentials (your real Google account)
+so that uploaded files are owned by you and charged to your Drive quota.
+A service-account fallback is available for Shared Drive setups.
 
 ---
 
@@ -63,41 +69,42 @@ career-agent-email-cover/
 │
 ├── .github/
 │   └── workflows/
-│       └── automation.yml      ← GitHub Actions daily workflow
+│       └── automation.yml          ← GitHub Actions daily workflow
 │
-├── services/                   ← Modular service layer
+├── services/                       ← Modular service layer
 │   ├── __init__.py
-│   ├── config.py               ← Centralized configuration (env vars)
-│   ├── logger.py               ← Structured logging factory
-│   ├── sheets.py               ← Google Sheets read/write
-│   ├── drive.py                ← Google Drive folder + upload
-│   ├── openai_client.py        ← OpenAI chat-completion with retry
-│   ├── scraper.py              ← Job-page web scraper
-│   ├── prompts.py              ← All AI prompt templates
-│   ├── document_generator.py   ← .md and .docx file generation
-│   └── resume_optimizer.py     ← PDF extraction + profile loading
+│   ├── config.py                   ← Centralized configuration (env vars)
+│   ├── logger.py                   ← Structured logging factory
+│   ├── sheets.py                   ← Google Sheets read/write
+│   ├── drive.py                    ← Google Drive folder + upload
+│   ├── openai_client.py            ← OpenAI chat-completion with retry
+│   ├── scraper.py                  ← Job-page web scraper
+│   ├── prompts.py                  ← All AI prompt templates
+│   ├── document_generator.py       ← .md and .docx file generation
+│   └── resume_optimizer.py         ← PDF extraction + profile loading
 │
 ├── scripts/
-│   └── process_resume.py       ← One-time resume preprocessing script
+│   ├── process_resume.py           ← One-time resume preprocessing script
+│   └── generate_refresh_token.py   ← One-time OAuth2 token generation script
 │
-├── raw_resumes/                ← Drop your PDF resumes here
+├── raw_resumes/                    ← Drop your PDF resumes here (gitignored)
 │   └── .gitkeep
 │
-├── resumes/                    ← Optimized .txt profiles (auto-generated)
+├── resumes/                        ← Optimized .txt profiles (commit these)
 │   ├── .gitkeep
-│   ├── backend.txt             ← Placeholder (replace via preprocessing)
-│   ├── ai.txt                  ← Placeholder
-│   └── default.txt             ← Fallback profile
+│   ├── backend.txt
+│   ├── ai.txt
+│   └── default.txt
 │
-├── output/                     ← Generated documents (gitignored)
+├── output/                         ← Generated documents (gitignored)
 │   └── .gitkeep
 │
-├── logs/                       ← Daily log files (gitignored)
+├── logs/                           ← Daily log files (gitignored)
 │   └── .gitkeep
 │
-├── main.py                     ← Entry point for the automation
+├── main.py                         ← Entry point for the automation
 ├── requirements.txt
-├── example.env                 ← Environment variable reference
+├── example.env                     ← Environment variable reference
 ├── .gitignore
 └── README.md
 ```
@@ -126,7 +133,7 @@ career-agent-email-cover/
 
 ### Step 2 — Enable APIs
 
-In the project, enable both APIs:
+Enable both APIs in the project:
 
 **Google Sheets API:**
 ```
@@ -138,12 +145,11 @@ APIs & Services → Library → search "Google Sheets API" → Enable
 APIs & Services → Library → search "Google Drive API" → Enable
 ```
 
-### Step 3 — Create a Service Account
+### Step 3 — Create a Service Account (for Sheets access)
 
 1. Go to **IAM & Admin → Service Accounts → Create Service Account**.
 2. Name it (e.g. `career-agent-sa`).
-3. Grant these roles:
-   - **Editor** (or specifically: Sheets Editor + Drive File Creator)
+3. No roles needed at project level — access is granted per-spreadsheet.
 4. Click **Done**.
 
 ### Step 4 — Create and Download a JSON Key
@@ -151,23 +157,54 @@ APIs & Services → Library → search "Google Drive API" → Enable
 1. Click the service account you just created.
 2. Go to the **Keys** tab → **Add Key → Create new key → JSON**.
 3. The key file downloads automatically.
-4. **Open the file**, copy its entire contents (the full JSON object).
-5. This value goes into `GOOGLE_SERVICE_ACCOUNT` (see below).
+4. Open the file and copy its **entire contents** (the full JSON object).
+5. This value goes into the `GOOGLE_SERVICE_ACCOUNT` secret.
 
-> **Security note:** Never commit this JSON file. Always store it as a secret
-> string in GitHub or in your local `.env` file.
+> **Security:** Never commit this JSON file. Store it only as a GitHub Secret
+> or in your local `.env` file (which is gitignored).
 
-### Step 5 — Share the Spreadsheet with the Service Account
+### Step 5 — Create an OAuth2 Client (for Drive uploads)
+
+Drive uploads run as your real Google account to avoid service-account
+storage quota errors. This requires a one-time OAuth2 setup.
+
+1. Still in the same GCP project, go to **APIs & Services → Credentials**.
+2. Click **+ Create Credentials → OAuth 2.0 Client ID**.
+3. If prompted, configure the OAuth consent screen first:
+   - User type: **External** → fill in app name (e.g. `Career Agent`) → save.
+4. Application type: **Desktop app** → name it → **Create**.
+5. Click **Download JSON** → save as `oauth_client.json` in the project root.
+   (`oauth_client.json` is gitignored — it will not be committed.)
+6. Run the token generation script (see [Local Development Setup](#local-development-setup)).
+
+### Step 6 — Share the Spreadsheet with the Service Account
 
 1. Open your Google Spreadsheet.
 2. Click **Share**.
-3. Add the service account email (looks like `name@project.iam.gserviceaccount.com`).
-4. Give it **Editor** access.
-5. Click **Send**.
+3. Add the service account email (`name@project.iam.gserviceaccount.com`).
+4. Give it **Editor** access → **Send**.
 
-The service account must also have access to the target Google Drive folder,
-or the automation will create the `Applications/` folder in the account's
-own Drive (which it has access to by default).
+---
+
+## Google Drive Setup
+
+### Create a folder in your Google Drive
+
+1. Go to [drive.google.com](https://drive.google.com).
+2. Create a folder (e.g. `Applications`) in **My Drive**.
+3. Open the folder and copy the **folder ID** from the URL:
+   ```
+   https://drive.google.com/drive/folders/<FOLDER_ID_HERE>
+   ```
+4. Set this as `GOOGLE_DRIVE_FOLDER_ID` in your `.env` and GitHub Variables.
+
+> **Why OAuth2 instead of service account for Drive?**
+> Service accounts have zero personal Drive storage quota. Uploading to a
+> regular "My Drive" folder with a service account causes a
+> `403 storageQuotaExceeded` error. OAuth2 user credentials fix this — files
+> are uploaded as you, owned by you, and charged to your Drive quota.
+> The service account is still used for Sheets access (it has no quota issues
+> there).
 
 ---
 
@@ -223,13 +260,12 @@ token-efficient text profiles used at generation time.
 | Raw PDF text (~1500 tokens) | ~2000 tokens total | ~$0.60 |
 | Optimized profile (~400 tokens) | ~900 tokens total | ~$0.27 |
 
-**Savings: ~55% per run.**  At scale this adds up significantly.
+**Savings: ~55% per run.**
 
 ### Step 1 — Add your PDF resumes
 
-Place your PDF resumes in the `raw_resumes/` directory.
-
-Name each file to match the `resume_type` value you use in the spreadsheet:
+Place your PDF resumes in the `raw_resumes/` directory.  Name each file to
+match the `resume_type` value you use in the spreadsheet:
 
 ```
 raw_resumes/
@@ -238,30 +274,20 @@ raw_resumes/
     default.pdf    →  resumes/default.txt   (resume_type: default)
 ```
 
-You can use any name — the output filename mirrors the PDF stem.
-
 ### Step 2 — Run the preprocessing script
 
 ```bash
 python scripts/process_resume.py
 ```
 
-The script will:
-1. Read each PDF from `raw_resumes/`.
-2. Extract text using PyMuPDF.
-3. Call OpenAI to generate a structured, compressed profile.
-4. Save the profile to `resumes/<name>.txt`.
+The script reads each PDF from `raw_resumes/`, extracts text via PyMuPDF,
+calls OpenAI to generate a structured compressed profile, and saves it to
+`resumes/<name>.txt`.
 
 ### Step 3 — Review the output
 
-Open the generated `.txt` files in `resumes/` and verify they contain:
-- Professional summary
-- Key technical skills (all relevant ones preserved)
-- Experience highlights
-- Notable projects
-- Domain expertise
-
-If a section is missing or inaccurate, you can edit the `.txt` file manually.
+Open the generated `.txt` files and verify they contain all expected sections.
+Edit manually if any section is missing or inaccurate.
 
 ### Step 4 — Commit the profiles
 
@@ -271,11 +297,8 @@ git commit -m "Add optimized resume profiles"
 git push
 ```
 
-Profiles are committed to the repo so GitHub Actions can access them without
-re-running preprocessing on every workflow run.
-
-> **Note:** The `.gitignore` excludes `resumes/*.txt` by default to protect
-> personal information. Remove that rule if you want to commit your profiles.
+Profiles are committed to the repo (this is a **private** repo) so GitHub
+Actions can access them at runtime without re-running preprocessing.
 
 ---
 
@@ -309,23 +332,43 @@ pip install -r requirements.txt
 cp example.env .env
 ```
 
-Edit `.env` and fill in:
+Fill in `.env`:
 
 ```env
 OPENAI_API_KEY=sk-...
 GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
 GOOGLE_SHEET_NAME=Job Applications
-GOOGLE_DRIVE_PARENT_FOLDER=Applications
+GOOGLE_DRIVE_FOLDER_ID=1AbCdEfGhIjKlMnOpQrStUvWxYz   # from Drive folder URL
 ```
 
-### Step 5 — Preprocess resumes
+### Step 5 — Generate the OAuth2 refresh token (one-time)
+
+Make sure `oauth_client.json` (downloaded in [Google Cloud Setup](#google-cloud-setup))
+is in the project root, then run:
+
+```bash
+python scripts/generate_refresh_token.py
+```
+
+A browser window opens.  Log in with the Google account that owns the Drive
+folder.  After authorizing, the script prints:
+
+```
+GOOGLE_OAUTH_CLIENT_ID=...
+GOOGLE_OAUTH_CLIENT_SECRET=...
+GOOGLE_OAUTH_REFRESH_TOKEN=...
+```
+
+Copy these into your `.env` file.  After copying, **delete `oauth_client.json`**.
+
+### Step 6 — Preprocess resumes
 
 ```bash
 # Place PDFs in raw_resumes/ first
 python scripts/process_resume.py
 ```
 
-### Step 6 — Run the automation locally
+### Step 7 — Run the automation locally
 
 ```bash
 python main.py
@@ -348,21 +391,26 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Secre
 
 | Secret name | Value |
 |-------------|-------|
-| `OPENAI_API_KEY` | Your OpenAI API key |
-| `GOOGLE_SERVICE_ACCOUNT` | Full content of the service-account JSON key file |
+| `OPENAI_API_KEY` | Your OpenAI API key (`sk-...`) |
+| `GOOGLE_SERVICE_ACCOUNT` | Full content of the service-account JSON key (entire JSON object) |
+| `GOOGLE_OAUTH_CLIENT_ID` | OAuth2 client ID (from `generate_refresh_token.py` output) |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth2 client secret (from `generate_refresh_token.py` output) |
+| `GOOGLE_OAUTH_REFRESH_TOKEN` | OAuth2 refresh token (from `generate_refresh_token.py` output) |
 
-Paste the entire JSON as a single value (including `{` and `}`).
+> **Flatten the service-account JSON to one line before pasting:**
+> ```bash
+> cat service_account.json | python3 -m json.tool --compact
+> ```
 
-### Step 3 — Add GitHub Variables (optional)
+### Step 3 — Add GitHub Variables
 
 Go to: **Repository → Settings → Secrets and variables → Actions → Variables**
 
-All of these have sensible defaults — only set them if you want to override:
-
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GOOGLE_SHEET_NAME` | `Job Applications` | Exact spreadsheet name |
-| `GOOGLE_DRIVE_PARENT_FOLDER` | `Applications` | Top-level Drive folder |
+| `GOOGLE_DRIVE_FOLDER_ID` | *(required)* | ID of your Drive folder (from folder URL) |
+| `GOOGLE_SHEET_NAME` | `Job Applications` | Exact spreadsheet tab name |
+| `GOOGLE_DRIVE_PARENT_FOLDER` | `Applications` | Fallback folder name (if ID not set) |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Model for generation |
 | `OPENAI_TEMPERATURE` | `0.7` | Generation temperature |
 | `MAX_JOBS_PER_RUN` | `10` | Per-run job cap |
@@ -374,28 +422,40 @@ All of these have sensible defaults — only set them if you want to override:
 | `GOOGLE_RETRIES` | `3` | Google API retry count |
 | `SCRAPE_RETRIES` | `2` | Scrape retry count |
 
-### Step 4 — Verify the workflow
+### Step 4 — Commit your resume profiles
 
-Go to **Actions → Career Agent Automation → Run workflow** to trigger a manual run
-and confirm everything works before relying on the daily schedule.
+```bash
+git add resumes/
+git commit -m "Add optimized resume profiles"
+git push
+```
+
+### Step 5 — Verify the workflow
+
+Go to **Actions → Career Agent Automation → Run workflow** to trigger a manual
+run and confirm everything works before relying on the daily schedule.
 
 ---
 
 ## Configuration Reference
 
 All configuration lives in `services/config.py` and is driven by environment
-variables.  This table is the complete reference.
+variables.
 
 | Environment variable | Type | Default | Description |
 |----------------------|------|---------|-------------|
 | `OPENAI_API_KEY` | str | *(required)* | OpenAI API key |
-| `GOOGLE_SERVICE_ACCOUNT` | str | *(required)* | Service-account JSON string |
+| `GOOGLE_SERVICE_ACCOUNT` | str | *(required)* | Service-account JSON string (for Sheets) |
+| `GOOGLE_OAUTH_CLIENT_ID` | str | *(required for Drive)* | OAuth2 client ID |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | str | *(required for Drive)* | OAuth2 client secret |
+| `GOOGLE_OAUTH_REFRESH_TOKEN` | str | *(required for Drive)* | OAuth2 refresh token |
 | `GOOGLE_SHEET_NAME` | str | `Job Applications` | Spreadsheet name |
-| `GOOGLE_DRIVE_PARENT_FOLDER` | str | `Applications` | Drive parent folder |
+| `GOOGLE_DRIVE_FOLDER_ID` | str | *(recommended)* | Drive folder ID from URL |
+| `GOOGLE_DRIVE_PARENT_FOLDER` | str | `Applications` | Fallback folder name |
 | `OPENAI_MODEL` | str | `gpt-4o-mini` | Generation model |
 | `OPENAI_TEMPERATURE` | float | `0.7` | Generation temperature |
 | `APP_TIMEZONE` | str | `Asia/Dhaka` | Timezone (informational) |
-| `CRON_SCHEDULE` | str | `0 19 * * *` | Cron (informational; edit YAML) |
+| `CRON_SCHEDULE` | str | `0 19 * * *` | Cron (informational; edit YAML to change) |
 | `MAX_JOBS_PER_RUN` | int | `10` | Max rows processed per run |
 | `RATE_LIMIT_DELAY` | float | `2` | Seconds sleep between jobs |
 | `REQUEST_TIMEOUT` | int | `20` | HTTP request timeout (s) |
@@ -464,7 +524,7 @@ At `gpt-4o-mini` pricing, processing 10 jobs costs roughly **$0.002** per run.
 - `max_tokens` is set conservatively per call (600 for cover letters, 400 for emails).
 - Job descriptions are truncated to 4 000 chars before being sent to the API.
 - `OPENAI_MODEL=gpt-4o-mini` is the default — upgrade to `gpt-4o` only if quality
-  is insufficient for your needs.
+  is insufficient.
 
 ---
 
@@ -477,8 +537,7 @@ output/
     ├── Stripe_JOB-001_cover_letter.md
     └── Stripe_JOB-001_cover_letter.docx
 
-Google Drive:
-Applications/
+Google Drive (your-folder/):
 └── Stripe/
     ├── Stripe_JOB-001_recruiter_email.md
     ├── Stripe_JOB-001_cover_letter.md
@@ -489,25 +548,41 @@ Applications/
 
 ## Troubleshooting
 
-### "GOOGLE_SERVICE_ACCOUNT is required"
+### `403 storageQuotaExceeded` on Drive upload
+
+Service accounts have no personal Drive storage quota and cannot upload to
+regular "My Drive" folders.  Fix: complete the OAuth2 setup in
+[Google Cloud Setup — Step 5](#step-5--create-an-oauth2-client-for-drive-uploads)
+and set the three `GOOGLE_OAUTH_*` secrets.
+
+### `GOOGLE_SERVICE_ACCOUNT is required`
 
 The secret is missing or empty.  Check:
 - Local: `.env` file has the full JSON value (not just the file path).
-- GitHub Actions: the `GOOGLE_SERVICE_ACCOUNT` secret is set under
+- GitHub Actions: `GOOGLE_SERVICE_ACCOUNT` secret is set under
   **Settings → Secrets and variables → Actions → Secrets**.
 
-### "SpreadsheetNotFound" error
+### `SpreadsheetNotFound` error
 
 - The spreadsheet name in `GOOGLE_SHEET_NAME` must match **exactly** (case-sensitive).
 - The service account email must have **Editor** access to the spreadsheet.
 
-### "FileNotFoundError: No resume profile found for type 'backend'"
+### `FileNotFoundError: No resume profile found for type 'backend'`
 
 Run the preprocessing script first:
 ```bash
 python scripts/process_resume.py
 ```
-And make sure `resumes/backend.txt` exists and is non-empty.
+Verify that `resumes/backend.txt` exists and is non-empty, then commit it.
+
+### OAuth2 token generation returns no refresh token
+
+The app was already authorized previously — Google does not re-issue a refresh
+token on repeat consent.  Revoke access and rerun:
+
+1. Go to [myaccount.google.com/permissions](https://myaccount.google.com/permissions).
+2. Find and revoke the app.
+3. Rerun `python scripts/generate_refresh_token.py`.
 
 ### Scraping returns empty or fails
 
@@ -522,7 +597,7 @@ Solutions:
 A previous run crashed after marking the row but before completing it.
 Manually set the `status` back to `not applied` in the spreadsheet to retry.
 
-### GitHub Actions: "No module named 'services'"
+### GitHub Actions: `No module named 'services'`
 
 Ensure `main.py` and the `services/` directory are at the repository root
 (not nested in a subdirectory) and that `requirements.txt` is also at the root.
@@ -541,3 +616,65 @@ Actions → Career Agent Automation → [run] → run-automation → Run career 
 ```
 
 Locally, check `logs/automation_YYYYMMDD.log`.
+
+---
+
+## Changelog
+
+### v1.2.0 — 2026-05-09
+
+**Fixed: Google Drive uploads fail with `403 storageQuotaExceeded`**
+
+Service accounts have zero personal Drive storage quota and cannot write files
+to regular "My Drive" folders.  This release switches Drive uploads to OAuth2
+user credentials so files are uploaded as your real Google account.
+
+- Added `scripts/generate_refresh_token.py` — one-time local script that opens
+  a browser for Google login and prints the three credential values to save as
+  GitHub Secrets.
+- Added OAuth2 credential fields to `services/config.py`:
+  `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
+  `GOOGLE_OAUTH_REFRESH_TOKEN`.
+- Updated `services/drive.py` to prefer OAuth2 credentials over service-account
+  credentials when the refresh token is present.  Service-account auth remains
+  as a fallback for Shared Drive setups.
+- Added `GOOGLE_DRIVE_FOLDER_ID` config — set this to your Drive folder ID
+  (from the folder URL) for reliable targeting without name-based search.
+- Added `supportsAllDrives=True` and `includeItemsFromAllDrives=True` to all
+  Drive API calls for forward compatibility.
+- Added `google-auth-oauthlib>=1.2.0` to `requirements.txt`.
+- Added `oauth_client.json` to `.gitignore`.
+- Updated GitHub Actions workflow with the three new OAuth2 secrets.
+- Added dedicated [Google Drive Setup](#google-drive-setup) section to README.
+
+### v1.1.0 — 2026-05-09
+
+**Fixed: blank directories missing from cloned repositories**
+
+- Added `.gitkeep` files to `raw_resumes/`, `output/`, and `logs/`.
+- Changed `.gitignore` patterns from `dir/` to `dir/*` so negation rules
+  for `.gitkeep` files take effect correctly.
+- Removed `resumes/*.txt` from `.gitignore` — profiles are committed directly
+  since this is a private repository, eliminating the need for GitHub Secrets
+  to hold resume content.
+
+**Fixed: GitHub Actions Node.js 20 deprecation warning**
+
+- Added `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` at workflow level to opt
+  into Node.js 24 ahead of the September 2026 forced migration.
+
+### v1.0.0 — 2026-05-08
+
+Initial release.
+
+- Daily automation via GitHub Actions (`0 19 * * *` UTC = 1 AM BST).
+- Google Sheets integration: reads `not applied` rows, writes status updates.
+- Job-page scraping with `requests` + `BeautifulSoup` (no headless browser).
+- OpenAI cover letter and recruiter email generation with exponential backoff.
+- Google Drive upload organized into `Applications/<Company>/` sub-folders.
+- Two-phase resume pipeline: preprocess PDFs once, use compact `.txt` profiles
+  at runtime (~55% token reduction per job).
+- Output formats: `.md` (plain text) and `.docx` (formatted Word document).
+- All credentials stored as GitHub Secrets — no JSON files on disk.
+- Manual workflow trigger with `max_jobs` and `log_level` overrides.
+- Artifact upload of generated documents (30-day retention).
