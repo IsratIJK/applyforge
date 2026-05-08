@@ -236,9 +236,7 @@ logs/*
 raw_resumes/*
 !raw_resumes/.gitkeep
 
-# Optimized resume profiles (contain personal info)
-resumes/*.txt
-# Keep placeholder dirs tracked so cloned repos have the expected structure
+# Keep resumes/ dir tracked (private repo — .txt profiles committed directly)
 !resumes/.gitkeep
 
 # Google credential JSON files (should only live as env-var strings)
