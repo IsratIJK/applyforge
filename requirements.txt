@@ -1,0 +1,26 @@
+# ============================================================
+# career-agent-email-cover — Python dependencies
+# Python 3.11+
+# ============================================================
+
+# --- OpenAI ---
+openai>=1.30.0
+
+# --- Google APIs ---
+gspread>=6.0.0                      # Google Sheets read/write
+google-auth>=2.29.0                 # Service-account credential handling
+google-api-python-client>=2.127.0   # Google Drive v3 REST client
+google-auth-httplib2>=0.2.0         # HTTP transport for google-auth
+
+# --- Web scraping ---
+requests>=2.31.0
+beautifulsoup4>=4.12.3
+
+# --- Document generation ---
+python-docx>=1.1.2                  # DOCX creation (cover letters)
+
+# --- PDF processing ---
+PyMuPDF>=1.24.0                     # PDF text extraction (fitz)
+
+# --- Environment & utilities ---
+python-dotenv>=1.0.1                # .env file loading for local development

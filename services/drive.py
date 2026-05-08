@@ -1,0 +1,221 @@
+"""
+services/drive.py
+=================
+Google Drive integration for the career-agent-email-cover project.
+
+Responsibilities
+----------------
+* Authenticate with Google Drive API using a service-account JSON secret.
+* Resolve (or lazily create) the top-level parent folder and per-company sub-folders.
+* Upload generated documents (.md, .docx) into the correct company folder.
+* Return the shareable web-view link for each uploaded file.
+
+Folder hierarchy created in Drive
+----------------------------------
+    Applications/           ← GOOGLE_DRIVE_PARENT_FOLDER
+        CompanyName/        ← created automatically per company
+            file.md
+            file.docx
+
+Usage
+-----
+    from services.drive import DriveService
+    from services.config import get_config
+
+    svc = DriveService(get_config())
+    link = svc.upload_file(Path("output/Acme/Acme_123_cover_letter.docx"), "Acme")
+"""
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
+from typing import Optional
+
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload
+
+from services.config import Config
+from services.logger import setup_logger
+
+# Drive scope — full access needed to create folders and upload files
+_SCOPES = ["https://www.googleapis.com/auth/drive"]
+
+# MIME type lookup for the file formats this project produces
+_MIME_MAP: dict[str, str] = {
+    ".md": "text/markdown",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".txt": "text/plain",
+}
+
+logger = setup_logger(__name__)
+
+
+class DriveService:
+    """
+    Wrapper around the Google Drive v3 REST API.
+
+    Authenticates lazily on first use; caches the parent folder ID to avoid
+    redundant API calls across multiple uploads in the same run.
+    """
+
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self._service = None                      # googleapiclient Resource object
+        self._parent_folder_id: Optional[str] = None  # cached ID of the top-level folder
+
+    # ------------------------------------------------------------------ #
+    # Authentication                                                       #
+    # ------------------------------------------------------------------ #
+
+    def _build_credentials(self) -> Credentials:
+        """
+        Parse the GOOGLE_SERVICE_ACCOUNT secret and return Drive credentials.
+
+        The JSON is stored as an env-var string (never on disk) for security.
+        """
+        sa_info = json.loads(self.config.google_service_account)
+        return Credentials.from_service_account_info(sa_info, scopes=_SCOPES)
+
+    def connect(self) -> None:
+        """Build the Drive API client and resolve the top-level parent folder."""
+        creds = self._build_credentials()
+        self._service = build("drive", "v3", credentials=creds)
+
+        # Resolve (or create) the top-level Applications/ folder once per run
+        self._parent_folder_id = self._get_or_create_folder(
+            name=self.config.google_drive_parent_folder,
+            parent_id=None,  # root of My Drive
+        )
+        logger.info(
+            f"Drive connected. Parent folder '{self.config.google_drive_parent_folder}' "
+            f"→ id={self._parent_folder_id}"
+        )
+
+    def _ensure_connected(self) -> None:
+        """Connect on first use (lazy initialisation pattern)."""
+        if self._service is None:
+            self.connect()
+
+    # ------------------------------------------------------------------ #
+    # Folder management                                                    #
+    # ------------------------------------------------------------------ #
+
+    def _get_or_create_folder(self, name: str, parent_id: Optional[str]) -> str:
+        """
+        Return the Drive folder ID for ``name``, creating it if necessary.
+
+        Parameters
+        ----------
+        name:
+            Display name of the folder.
+        parent_id:
+            Parent folder ID, or None to place the folder at Drive root.
+
+        Returns
+        -------
+        str
+            The Google Drive file ID of the folder.
+        """
+        # Build a scoped search query to avoid collisions with other folders
+        query = (
+            f"name='{name}' "
+            f"and mimeType='application/vnd.google-apps.folder' "
+            f"and trashed=false"
+        )
+        if parent_id:
+            query += f" and '{parent_id}' in parents"
+
+        results = (
+            self._service.files()
+            .list(q=query, spaces="drive", fields="files(id, name)")
+            .execute()
+        )
+
+        files = results.get("files", [])
+        if files:
+            # Folder already exists — return the first match
+            return files[0]["id"]
+
+        # Folder does not exist — create it
+        metadata: dict = {
+            "name": name,
+            "mimeType": "application/vnd.google-apps.folder",
+        }
+        if parent_id:
+            metadata["parents"] = [parent_id]
+
+        folder = self._service.files().create(body=metadata, fields="id").execute()
+        logger.info(f"Created Drive folder: '{name}'")
+        return folder["id"]
+
+    # ------------------------------------------------------------------ #
+    # Upload                                                               #
+    # ------------------------------------------------------------------ #
+
+    def upload_file(self, file_path: Path, company_name: str) -> str:
+        """
+        Upload a local file to Drive under Applications/CompanyName/.
+
+        Creates the company sub-folder automatically on first upload for that
+        company.  Uses exponential backoff on HTTP errors.
+
+        Parameters
+        ----------
+        file_path:
+            Absolute or relative path to the local file.
+        company_name:
+            Company name used as the sub-folder name in Drive.
+
+        Returns
+        -------
+        str
+            The webViewLink of the uploaded file, or an empty string on failure.
+        """
+        self._ensure_connected()
+
+        # Resolve or create the per-company folder inside the parent folder
+        company_folder_id = self._get_or_create_folder(
+            name=company_name,
+            parent_id=self._parent_folder_id,
+        )
+
+        mime_type = _MIME_MAP.get(file_path.suffix, "application/octet-stream")
+
+        file_metadata: dict = {
+            "name": file_path.name,
+            "parents": [company_folder_id],
+        }
+        media = MediaFileUpload(str(file_path), mimetype=mime_type, resumable=True)
+
+        retries = self.config.google_retries
+        for attempt in range(retries):
+            try:
+                uploaded = (
+                    self._service.files()
+                    .create(body=file_metadata, media_body=media, fields="id,webViewLink")
+                    .execute()
+                )
+                link = uploaded.get("webViewLink", "")
+                logger.info(
+                    f"Uploaded '{file_path.name}' → Drive/{company_name}/ | {link}"
+                )
+                return link
+
+            except HttpError as exc:
+                if attempt < retries - 1:
+                    wait = 2 ** attempt  # 1 s, 2 s, 4 s
+                    logger.warning(
+                        f"Drive upload failed (attempt {attempt + 1}/{retries}), "
+                        f"retrying in {wait}s: {exc}"
+                    )
+                    time.sleep(wait)
+                else:
+                    logger.error(
+                        f"Drive upload failed for '{file_path.name}' after {retries} attempts: {exc}"
+                    )
+                    raise
+
+        return ""  # unreachable, but satisfies type checker

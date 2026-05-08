@@ -1,0 +1,141 @@
+# ============================================================================
+# Career Agent — Daily Job Application Automation
+# ============================================================================
+#
+# Runs every day at 1:00 AM Bangladesh Standard Time (BST = UTC+6).
+# 1:00 AM BST = 19:00 UTC previous day → cron: "0 19 * * *"
+#
+# To change the schedule:
+#   Option A — Edit the cron line below directly.
+#   Option B — Set CRON_SCHEDULE in GitHub Actions Variables and update the
+#              cron field to match (GitHub does not read Variables for the
+#              schedule trigger — the cron must be a literal value here).
+#
+# Manual runs:
+#   Go to Actions → Career Agent Automation → Run workflow
+#   You can override MAX_JOBS_PER_RUN and LOG_LEVEL per manual run.
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions → Secrets):
+#   OPENAI_API_KEY          — OpenAI API key
+#   GOOGLE_SERVICE_ACCOUNT  — Full GCP service-account JSON as a single string
+#
+# Optional GitHub Variables (Settings → Secrets and variables → Actions → Variables):
+#   GOOGLE_SHEET_NAME            — default: "Job Applications"
+#   GOOGLE_DRIVE_PARENT_FOLDER   — default: "Applications"
+#   OPENAI_MODEL                 — default: "gpt-4o-mini"
+#   OPENAI_TEMPERATURE           — default: "0.7"
+#   MAX_JOBS_PER_RUN             — default: "10"
+#   REQUEST_TIMEOUT              — default: "20"
+#   SCRAPE_TIMEOUT               — default: "30"
+#   RATE_LIMIT_DELAY             — default: "2"
+#   LOG_LEVEL                    — default: "INFO"
+#   OPENAI_RETRIES               — default: "3"
+#   GOOGLE_RETRIES               — default: "3"
+#   SCRAPE_RETRIES               — default: "2"
+# ============================================================================
+
+name: Career Agent Automation
+
+on:
+  # ----- Scheduled trigger -----
+  schedule:
+    # 1:00 AM Bangladesh Standard Time = 7:00 PM UTC
+    # Adjust this cron if you change the timezone
+    - cron: "0 19 * * *"
+
+  # ----- Manual trigger with optional overrides -----
+  workflow_dispatch:
+    inputs:
+      max_jobs:
+        description: "Max jobs to process (overrides MAX_JOBS_PER_RUN variable)"
+        required: false
+        default: "10"
+        type: string
+      log_level:
+        description: "Logging level"
+        required: false
+        default: "INFO"
+        type: choice
+        options:
+          - DEBUG
+          - INFO
+          - WARNING
+          - ERROR
+
+jobs:
+  run-automation:
+    name: Process Job Applications
+    runs-on: ubuntu-latest
+    timeout-minutes: 30   # Abort if something hangs (e.g. slow scrape + many jobs)
+
+    steps:
+      # ---- 1. Check out source code ----
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---- 2. Set up Python 3.11 with pip cache ----
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"          # Caches ~/.cache/pip across runs for faster installs
+
+      # ---- 3. Install dependencies ----
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ---- 4. Run the automation ----
+      # Secrets are passed as environment variables — never written to disk.
+      # Variables use vars.NAME with a fallback default via the || operator.
+      # Manual-run inputs take precedence over Variables for their respective fields.
+      - name: Run career agent automation
+        env:
+          # --- Required secrets ---
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+
+          # --- Google Workspace targets ---
+          GOOGLE_SHEET_NAME: ${{ vars.GOOGLE_SHEET_NAME || 'Job Applications' }}
+          GOOGLE_DRIVE_PARENT_FOLDER: ${{ vars.GOOGLE_DRIVE_PARENT_FOLDER || 'Applications' }}
+
+          # --- OpenAI settings ---
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
+          OPENAI_TEMPERATURE: ${{ vars.OPENAI_TEMPERATURE || '0.7' }}
+
+          # --- Processing limits ---
+          # Manual input takes precedence over the Variable for one-off runs
+          MAX_JOBS_PER_RUN: ${{ github.event.inputs.max_jobs || vars.MAX_JOBS_PER_RUN || '10' }}
+          RATE_LIMIT_DELAY: ${{ vars.RATE_LIMIT_DELAY || '2' }}
+
+          # --- Network settings ---
+          REQUEST_TIMEOUT: ${{ vars.REQUEST_TIMEOUT || '20' }}
+          SCRAPE_TIMEOUT: ${{ vars.SCRAPE_TIMEOUT || '30' }}
+
+          # --- Retry counts ---
+          OPENAI_RETRIES: ${{ vars.OPENAI_RETRIES || '3' }}
+          GOOGLE_RETRIES: ${{ vars.GOOGLE_RETRIES || '3' }}
+          SCRAPE_RETRIES: ${{ vars.SCRAPE_RETRIES || '2' }}
+
+          # --- Logging ---
+          LOG_LEVEL: ${{ github.event.inputs.log_level || vars.LOG_LEVEL || 'INFO' }}
+
+          # --- Timezone (informational; GitHub Actions runs in UTC) ---
+          APP_TIMEZONE: ${{ vars.APP_TIMEZONE || 'Asia/Dhaka' }}
+
+        run: python main.py
+
+      # ---- 5. Upload generated documents as workflow artifacts ----
+      # Artifacts are available for 30 days in the Actions UI.
+      # This is a backup — files are also in Google Drive.
+      - name: Upload generated documents as artifacts
+        if: always()    # Run even if the automation step failed (partial output is useful)
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-documents-run-${{ github.run_number }}
+          path: |
+            output/
+            logs/
+          retention-days: 30
+          if-no-files-found: ignore   # Don't fail the step if no files were generated

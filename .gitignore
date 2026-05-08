@@ -216,3 +216,28 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==============================================================================
+# career-agent-email-cover — project-specific additions
+# ==============================================================================
+
+# Real .env files (secrets — never commit)
+# example.env is safe to commit and is excluded from this rule
+.env.*
+!example.env
+
+# Generated outputs (uploaded to Google Drive — no need to commit)
+output/
+logs/
+
+# Raw PDF resumes (sensitive personal documents)
+raw_resumes/
+
+# Optimized resume profiles (contain personal info)
+resumes/*.txt
+# Keep the resumes/ directory tracked
+!resumes/.gitkeep
+
+# Google credential JSON files (should only live as env-var strings)
+service_account*.json
+credentials*.json
