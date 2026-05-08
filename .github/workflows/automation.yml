@@ -62,6 +62,10 @@ on:
           - WARNING
           - ERROR
 
+env:
+  # Opt into Node.js 24 for all actions — Node.js 20 removed September 2026
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   run-automation:
     name: Process Job Applications
