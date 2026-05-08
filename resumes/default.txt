@@ -1,0 +1,24 @@
+PROFESSIONAL SUMMARY:
+Software Engineer with expertise in full-stack development and machine learning. Proven track record in optimizing workflows and enhancing product stability, resulting in faster release cycles and improved user confidence.
+
+KEY TECHNICAL SKILLS:
+Python, JavaScript, TypeScript, React, Node.js, AWS (S3, EC2, Lambda, SageMaker), Docker, PyTorch, scikit-learn, Pandas, NumPy, MLflow, PostgreSQL, Tailwind CSS, ExpressJS
+
+EXPERIENCE HIGHLIGHTS:
+Software Engineer | TaskCall Inc. | Designed and developed production-grade software applications, improving release cycles.  
+Full Stack Software Engineer Intern | TaskCall Inc. | Developed software features and improved system stability through unit testing.  
+Junior Software & Machine Learning Engineer | Posh Pixel Studio | Built scalable email marketing infrastructure, enhancing customer acquisition.  
+Researcher (Part Time) | Brain Innovation Ltd. | Conducted applied research in AI/ML, publishing findings in reputable journals.  
+Lecturer | United International University | Delivered instruction in Computer Science, supporting student development.
+
+NOTABLE PROJECTS:
+YTubeInsight | Python | Developed a package for YouTube analytics, enabling detailed video insights.  
+StudentBook | ReactJS, NodeJS | Created a social media platform for educational institutions, enhancing connectivity.  
+AssistMe | ReactJS, ExpressJS | Built a platform for email and task management, streamlining user productivity.  
+SafeLicensing | Python, YOLO | Developed a license plate detection system with encryption features, ensuring security.
+
+DOMAIN EXPERTISE:
+full-stack development, machine learning, AI, software engineering, educational technology
+
+EDUCATION:
+Bachelor of Science in Computer Science | United International University | 2024
