@@ -7,6 +7,20 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.2] — 2026-05-11
+
+### Fixed
+
+- **Full Guide page markdown rendering crash** — removed brittle custom `marked`
+  heading renderer from `docs/readme.html` and now generate heading anchor IDs
+  from rendered DOM text after `marked.parse(md)`, avoiding browser/runtime
+  differences around parser internals.
+- **Broken repository file links inside Full Guide** — relative markdown links
+  like `CHANGELOG.md` now rewrite to GitHub blob URLs in the docs site, so the
+  changelog link at the end of the README opens correctly on GitHub Pages.
+
+---
+
 ## [1.6.1] — 2026-05-11
 
 ### Fixed

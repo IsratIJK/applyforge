@@ -163,21 +163,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>
-    marked.use({
-      renderer: {
-        // marked v9 passes { tokens, depth } — text must be rendered via parseInline
-        heading({ tokens, depth }) {
-          const text = this.parser.parseInline(tokens);
-          const plain = text.replace(/<[^>]*>/g, "");
-          const id = plain
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, "")
-            .trim()
-            .replace(/\s+/g, "-");
-          return `<h${depth} id="${id}">${text}</h${depth}>\n`;
-        }
-      }
-    });
+    const repoBlobBase = "https://github.com/FahimFBA/applyforge/blob/main/";
+
+    function slugifyHeading(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-");
+    }
+
+    function rewriteRepoLinks(container) {
+      container.querySelectorAll("a[href]").forEach((link) => {
+        const href = link.getAttribute("href");
+        if (!href || href.startsWith("#") || /^[a-z]+:/i.test(href)) return;
+
+        link.href = new URL(href, repoBlobBase).toString();
+        link.target = "_blank";
+        link.rel = "noreferrer";
+      });
+    }
 
     async function loadReadme() {
       const el = document.getElementById("readme-content");
@@ -188,6 +193,13 @@
         const md = await res.text();
 
         el.innerHTML = marked.parse(md);
+
+        el.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => {
+          const id = slugifyHeading(heading.textContent || "");
+          if (id) heading.id = id;
+        });
+
+        rewriteRepoLinks(el);
 
         el.querySelectorAll("img").forEach((img) => {
           img.src = img.getAttribute("src").replace(/^docs\//, "./");
