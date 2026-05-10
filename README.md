@@ -21,13 +21,14 @@ Actions Variables — no core code changes required.
 6. [Spreadsheet Setup](#spreadsheet-setup)
 7. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
 8. [Local Development Setup](#local-development-setup)
-9. [GitHub Actions Setup](#github-actions-setup)
-10. [Configuration Reference](#configuration-reference)
-11. [Cron Schedule Customization](#cron-schedule-customization)
-12. [OpenAI Cost Optimization](#openai-cost-optimization)
-13. [Generated Output Structure](#generated-output-structure)
-14. [Troubleshooting](#troubleshooting)
-15. [Changelog](CHANGELOG.md)
+9. [Testing](#testing)
+10. [GitHub Actions Setup](#github-actions-setup)
+11. [Configuration Reference](#configuration-reference)
+12. [Cron Schedule Customization](#cron-schedule-customization)
+13. [OpenAI Cost Optimization](#openai-cost-optimization)
+14. [Generated Output Structure](#generated-output-structure)
+15. [Troubleshooting](#troubleshooting)
+16. [Changelog](CHANGELOG.md)
 
 ---
 
@@ -86,6 +87,11 @@ career-agent-email-cover/
 ├── scripts/
 │   ├── process_resume.py           ← One-time resume preprocessing script
 │   └── generate_refresh_token.py   ← One-time OAuth2 token generation script
+│
+├── tests/                          ← Unit tests
+│   ├── test_config.py              ← Config validation + singleton behavior
+│   ├── test_document_generator.py  ← Output path + file generation tests
+│   └── test_resume_optimizer.py    ← Resume loading + PDF text cleaning tests
 │
 ├── raw_resumes/                    ← Drop your PDF resumes here (gitignored)
 │   └── .gitkeep
@@ -373,6 +379,41 @@ python scripts/process_resume.py
 ```bash
 python main.py
 ```
+
+### Step 8 — Run unit tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+This project uses Python's built-in `unittest` runner. The current suite covers:
+
+- `services/config.py` validation, directory creation, and singleton caching
+- `services/document_generator.py` path building plus Markdown/DOCX output logic
+- `services/resume_optimizer.py` text cleaning, missing-file handling, and fallback profile loading
+
+---
+
+## Testing
+
+Unit tests live in `tests/` and use Python's standard `unittest` framework, so no extra test dependency is required.
+
+### Run all tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+### Current coverage
+
+- `test_config.py`: required env validation, auto-created directories, `get_config()` singleton behavior
+- `test_document_generator.py`: sanitized output paths, Markdown writes, DOCX generation behavior
+- `test_resume_optimizer.py`: extracted text cleanup, missing PDF errors, resume profile fallback and empty-profile guards
+
+### Notes
+
+- Tests for DOCX and PDF code paths stub optional third-party imports where needed, so logic can be verified in lightweight environments.
+- If you add new services or change workflow behavior, extend `tests/` in same PR to keep regressions visible.
 
 ---
 

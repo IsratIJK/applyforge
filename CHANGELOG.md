@@ -7,6 +7,20 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.2.1] — 2026-05-10
+
+### Added
+
+- Unit test suite under `tests/` covering config validation, document generation,
+  and resume optimizer behavior.
+
+### Changed
+
+- README now documents unit test execution and includes `tests/` in project
+  structure.
+
+---
+
 ## [1.2.0] — 2026-05-09
 
 ### Fixed
@@ -84,6 +98,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.2.1]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/FahimFBA/career-agent-email-cover/releases/tag/v1.0.0
