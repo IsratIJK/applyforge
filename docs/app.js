@@ -282,8 +282,25 @@ function renderCommands() {
     article.innerHTML = `
       <strong>${item.title}</strong>
       <p>${item.body}</p>
-      <code>${item.command}</code>
+      <div class="code-block">
+        <code class="command-code"></code>
+        <button class="copy-btn">Copy</button>
+      </div>
     `;
+
+    article.querySelector(".command-code").textContent = item.command;
+
+    article.querySelector(".copy-btn").addEventListener("click", function () {
+      navigator.clipboard.writeText(item.command).then(() => {
+        this.textContent = "Copied!";
+        this.classList.add("copied");
+        setTimeout(() => {
+          this.textContent = "Copy";
+          this.classList.remove("copied");
+        }, 2000);
+      });
+    });
+
     root.appendChild(article);
   });
 }

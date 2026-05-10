@@ -414,13 +414,45 @@ h3 {
   font-size: 0.92rem;
 }
 
-.command-card code {
+.code-block {
+  position: relative;
+}
+
+.command-card .command-code {
   display: block;
   padding: 14px;
+  padding-right: 72px;
   border-radius: var(--radius-md);
   background: #151311;
   color: #f4ede2;
   overflow-x: auto;
+  white-space: pre;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  color: #a89f92;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #f4ede2;
+}
+
+.copy-btn.copied {
+  background: var(--accent);
+  color: #fff;
 }
 
 @media (max-width: 1024px) {

@@ -34,6 +34,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Copy README into docs
+        run: cp README.md docs/README.md
+
       - name: Upload docs artifact
         uses: actions/upload-pages-artifact@v3
         with:

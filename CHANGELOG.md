@@ -7,6 +7,28 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.0] — 2026-05-11
+
+### Added
+
+- **Full Guide page** (`docs/readme.html`) — renders the repository README inside
+  the docs site with syntax-highlighted code blocks, copy buttons on every snippet,
+  and working table-of-contents anchor links.
+- Copy buttons on all Command Deck snippets in the docs homepage.
+- `docs-site.yml` CI step to copy `README.md` into `docs/` before artifact upload,
+  making the file accessible to the Full Guide page on GitHub Pages.
+- `docs/README.md` added to `.gitignore` so the CI-generated copy is never committed.
+
+### Changed
+
+- Docs site nav link renamed from "README" to "Full Guide" and now points to
+  `readme.html` instead of the raw `../README.md` file (which is unreachable on
+  GitHub Pages).
+- Command code blocks in the docs site now render with `white-space: pre` so
+  multi-line commands display correctly.
+
+---
+
 ## [1.5.0] — 2026-05-10
 
 ### Changed
