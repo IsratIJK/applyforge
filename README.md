@@ -14,21 +14,22 @@ Actions Variables — no core code changes required.
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Project Structure](#project-structure)
-3. [Prerequisites](#prerequisites)
-4. [Google Cloud Setup](#google-cloud-setup)
-5. [Google Drive Setup](#google-drive-setup)
-6. [Spreadsheet Setup](#spreadsheet-setup)
-7. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
-8. [Local Development Setup](#local-development-setup)
-9. [Testing](#testing)
-10. [GitHub Actions Setup](#github-actions-setup)
-11. [Configuration Reference](#configuration-reference)
-12. [Cron Schedule Customization](#cron-schedule-customization)
-13. [OpenAI Cost Optimization](#openai-cost-optimization)
-14. [Generated Output Structure](#generated-output-structure)
-15. [Troubleshooting](#troubleshooting)
-16. [Changelog](CHANGELOG.md)
+2. [Documentation Website](#documentation-website)
+3. [Project Structure](#project-structure)
+4. [Prerequisites](#prerequisites)
+5. [Google Cloud Setup](#google-cloud-setup)
+6. [Google Drive Setup](#google-drive-setup)
+7. [Spreadsheet Setup](#spreadsheet-setup)
+8. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
+9. [Local Development Setup](#local-development-setup)
+10. [Testing](#testing)
+11. [GitHub Actions Setup](#github-actions-setup)
+12. [Configuration Reference](#configuration-reference)
+13. [Cron Schedule Customization](#cron-schedule-customization)
+14. [OpenAI Cost Optimization](#openai-cost-optimization)
+15. [Generated Output Structure](#generated-output-structure)
+16. [Troubleshooting](#troubleshooting)
+17. [Changelog](CHANGELOG.md)
 
 ---
 
@@ -63,6 +64,39 @@ A service-account fallback is available for Shared Drive setups.
 
 ---
 
+## Documentation Website
+
+A static documentation site now lives in [`docs/`](docs/).  It packages the
+main tutorials, workflow summary, configuration highlights, spreadsheet status
+values, project layout, and command reference into a GitHub Pages-friendly
+single page.
+
+### Local preview
+
+```bash
+python -m http.server 8000 -d docs
+```
+
+Then open:
+
+```
+http://localhost:8000
+```
+
+### GitHub Pages deployment
+
+The repository includes [`.github/workflows/docs-site.yml`](.github/workflows/docs-site.yml),
+which deploys the `docs/` directory to GitHub Pages on pushes to `main`
+whenever the docs or core documentation files change.
+
+To enable it in GitHub:
+
+1. Go to **Settings → Pages**.
+2. Set **Source** to **GitHub Actions**.
+3. Push to `main` or run the **Docs Site** workflow manually.
+
+---
+
 ## Project Structure
 
 ```
@@ -71,6 +105,12 @@ career-agent-email-cover/
 ├── .github/
 │   └── workflows/
 │       └── automation.yml          ← GitHub Actions daily workflow
+│       └── docs-site.yml           ← GitHub Pages deployment workflow
+│
+├── docs/                           ← Static tutorial + reference website
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
 │
 ├── services/                       ← Modular service layer
 │   ├── __init__.py
