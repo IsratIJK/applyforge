@@ -236,7 +236,9 @@ logs/*
 raw_resumes/*
 !raw_resumes/.gitkeep
 
-# Keep resumes/ dir tracked (private repo — .txt profiles committed directly)
+# resumes/ — keep directory but exclude .txt profiles
+# Profiles are stored as GitHub Variables (RESUME_DEFAULT, RESUME_BACKEND, etc.)
+resumes/*.txt
 !resumes/.gitkeep
 
 # Google credential JSON files (should only live as env-var strings or secrets)

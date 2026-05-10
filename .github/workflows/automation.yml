@@ -32,6 +32,13 @@
 #   OPENAI_RETRIES               — default: "3"
 #   GOOGLE_RETRIES               — default: "3"
 #   SCRAPE_RETRIES               — default: "2"
+#
+# Resume Profile Variables (Settings → Secrets and variables → Actions → Variables):
+#   RESUME_DEFAULT               — content of your default optimized .txt profile
+#   RESUME_BACKEND               — content of your backend optimized .txt profile
+#   RESUME_AI                    — content of your AI/ML optimized .txt profile
+#   Add more as RESUME_<TYPE> for each resume_type value used in the spreadsheet.
+#   Generate content with: python scripts/process_resume.py
 # ============================================================================
 
 name: ApplyForge Automation
@@ -134,6 +141,13 @@ jobs:
 
           # --- Timezone (informational; GitHub Actions runs in UTC) ---
           APP_TIMEZONE: ${{ vars.APP_TIMEZONE || 'Asia/Dhaka' }}
+
+          # --- Resume profiles (stored as GitHub Variables, never in the repo) ---
+          # Add a RESUME_<TYPE> variable for each resume_type used in your spreadsheet.
+          # Generate content with: python scripts/process_resume.py
+          RESUME_DEFAULT: ${{ vars.RESUME_DEFAULT }}
+          RESUME_BACKEND: ${{ vars.RESUME_BACKEND }}
+          RESUME_AI: ${{ vars.RESUME_AI }}
 
         run: python main.py
 

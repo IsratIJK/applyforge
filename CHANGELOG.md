@@ -7,6 +7,38 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.5.0] — 2026-05-10
+
+### Changed
+
+- **Breaking: Resume profiles moved from repository files to GitHub Variables.**
+  Profiles were previously committed to `resumes/` (safe only in a private repo).
+  Now that the repository is public, profiles are stored as GitHub Actions
+  Repository Variables (`RESUME_DEFAULT`, `RESUME_BACKEND`, `RESUME_AI`, etc.)
+  and injected at runtime via environment variables — no resume content ever
+  touches the repository.
+- `services/resume_optimizer.py` — `load_resume_profile()` now resolves profiles
+  in priority order: env var `RESUME_{TYPE}` → local file `resumes/{type}.txt` →
+  env var `RESUME_DEFAULT` → local file `resumes/default.txt`. Local file fallback
+  preserves existing local-dev workflows.
+- `.gitignore` — added `resumes/*.txt`; profiles are no longer tracked.
+- `resumes/default.txt` removed from version control.
+- `automation.yml` — passes `RESUME_DEFAULT`, `RESUME_BACKEND`, and `RESUME_AI`
+  from Repository Variables as environment variables to the Python runtime.
+- `example.env` — documents the new `RESUME_*` variable section.
+
+### Migration from v1.4.x
+
+1. Run `python scripts/process_resume.py` to generate `.txt` profiles locally.
+2. Copy each profile's content into a GitHub Actions Repository Variable:
+   **Settings → Secrets and variables → Actions → Variables → New repository variable**
+   - `RESUME_DEFAULT` — content of `resumes/default.txt`
+   - `RESUME_BACKEND` — content of `resumes/backend.txt` (if you use this type)
+   - `RESUME_AI` — content of `resumes/ai.txt` (if you use this type)
+3. Local `.txt` files remain usable for local dev but are now gitignored.
+
+---
+
 ## [1.4.1] — 2026-05-10
 
 ### Added
@@ -141,6 +173,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.5.0]: https://github.com/FahimFBA/applyforge/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/FahimFBA/applyforge/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/FahimFBA/applyforge/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/FahimFBA/applyforge/compare/v1.2.1...v1.3.0

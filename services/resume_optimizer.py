@@ -34,6 +34,7 @@ Usage
 """
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -122,8 +123,10 @@ def load_resume_profile(resumes_dir: Path, resume_type: str) -> str:
 
     Resolution order
     ----------------
-    1. ``resumes_dir / {resume_type}.txt``
-    2. ``resumes_dir / default.txt``   (fallback when type-specific file missing)
+    1. Env var ``RESUME_{TYPE.upper()}``          (GitHub Variable — primary path)
+    2. ``resumes_dir / {resume_type}.txt``        (local dev fallback)
+    3. Env var ``RESUME_DEFAULT``                 (GitHub Variable — generic fallback)
+    4. ``resumes_dir / default.txt``              (local dev generic fallback)
 
     Parameters
     ----------
@@ -140,23 +143,39 @@ def load_resume_profile(resumes_dir: Path, resume_type: str) -> str:
     Raises
     ------
     FileNotFoundError
-        If neither the requested type nor default.txt exists.
+        If no profile is found via env var or file for the type or default.
     ValueError
         If the located profile file is empty.
     """
-    profile_path = resumes_dir / f"{resume_type}.txt"
+    # Priority 1: env var for this type (GitHub Variable at runtime)
+    env_key = f"RESUME_{resume_type.upper()}"
+    content = os.environ.get(env_key, "").strip()
+    if content:
+        logger.info(f"Loaded resume profile from env var '{env_key}' ({len(content)} chars)")
+        return content
 
+    # Priority 2: local file for this type
+    profile_path = resumes_dir / f"{resume_type}.txt"
     if not profile_path.exists():
         logger.warning(
             f"Resume profile '{resume_type}.txt' not found in {resumes_dir}/ — "
-            f"falling back to default.txt"
+            f"trying fallbacks"
         )
+
+        # Priority 3: env var default fallback
+        default_content = os.environ.get("RESUME_DEFAULT", "").strip()
+        if default_content:
+            logger.info(f"Loaded resume profile from env var 'RESUME_DEFAULT' ({len(default_content)} chars)")
+            return default_content
+
+        # Priority 4: local default.txt file
         profile_path = resumes_dir / "default.txt"
 
     if not profile_path.exists():
         raise FileNotFoundError(
-            f"No resume profile found for type '{resume_type}' and no default.txt present. "
-            f"Run:  python scripts/process_resume.py"
+            f"No resume profile found for type '{resume_type}'. "
+            f"Set the RESUME_{resume_type.upper()} (or RESUME_DEFAULT) GitHub Variable, "
+            f"or run:  python scripts/process_resume.py"
         )
 
     content = profile_path.read_text(encoding="utf-8").strip()

@@ -138,11 +138,8 @@ applyforge/
 ├── raw_resumes/                    ← Drop your PDF resumes here (gitignored)
 │   └── .gitkeep
 │
-├── resumes/                        ← Optimized .txt profiles (commit these)
-│   ├── .gitkeep
-│   ├── backend.txt
-│   ├── ai.txt
-│   └── default.txt
+├── resumes/                        ← Local .txt profiles for dev fallback (gitignored)
+│   └── .gitkeep                    ← Profiles are set as GitHub Variables at runtime
 │
 ├── output/                         ← Generated documents (gitignored)
 │   └── .gitkeep
@@ -337,16 +334,27 @@ calls OpenAI to generate a structured compressed profile, and saves it to
 Open the generated `.txt` files and verify they contain all expected sections.
 Edit manually if any section is missing or inaccurate.
 
-### Step 4 — Commit the profiles
+### Step 4 — Set profiles as GitHub Variables
 
-```bash
-git add resumes/
-git commit -m "Add optimized resume profiles"
-git push
-```
+Paste each profile's text content into a GitHub Actions Repository Variable so
+GitHub Actions can access them at runtime without storing anything in the repo:
 
-Profiles are committed to the repo (this is a **private** repo) so GitHub
-Actions can access them at runtime without re-running preprocessing.
+1. Go to **Settings → Secrets and variables → Actions → Variables → New repository variable**.
+2. Create one variable per resume type:
+
+| Variable name | Content |
+|---------------|---------|
+| `RESUME_DEFAULT` | content of `resumes/default.txt` |
+| `RESUME_BACKEND` | content of `resumes/backend.txt` |
+| `RESUME_AI` | content of `resumes/ai.txt` |
+
+Add a `RESUME_<TYPE>` variable for every `resume_type` key you use in the
+spreadsheet.  The `RESUME_DEFAULT` variable acts as a fallback when no
+type-specific variable is found.
+
+> **For local development only:** You can also paste content into `example.env`
+> under the `RESUME_*` section and copy it to `.env` — the local runtime reads
+> env vars and local files with the same priority order.
 
 ---
 
@@ -504,16 +512,15 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Varia
 | `OPENAI_RETRIES` | `3` | OpenAI retry count |
 | `GOOGLE_RETRIES` | `3` | Google API retry count |
 | `SCRAPE_RETRIES` | `2` | Scrape retry count |
+| `RESUME_DEFAULT` | *(required)* | Default resume profile text (processed by `process_resume.py`) |
+| `RESUME_BACKEND` | *(optional)* | Backend-role resume profile text |
+| `RESUME_AI` | *(optional)* | AI/ML-role resume profile text |
 
-### Step 4 — Commit your resume profiles
+Add a `RESUME_<TYPE>` variable for every `resume_type` key used in your
+spreadsheet.  `RESUME_DEFAULT` is the fallback when no type-specific variable
+matches.
 
-```bash
-git add resumes/
-git commit -m "Add optimized resume profiles"
-git push
-```
-
-### Step 5 — Verify the workflow
+### Step 4 — Verify the workflow
 
 Go to **Actions → ApplyForge Automation → Run workflow** to trigger a manual
 run and confirm everything works before relying on the daily schedule.
@@ -549,8 +556,11 @@ variables.
 | `LOG_LEVEL` | str | `INFO` | Logging level |
 | `OUTPUT_DIR` | str | `output` | Local output directory |
 | `LOGS_DIR` | str | `logs` | Local logs directory |
-| `RESUMES_DIR` | str | `resumes` | Optimized profiles directory |
+| `RESUMES_DIR` | str | `resumes` | Local profiles directory (dev fallback) |
 | `RAW_RESUMES_DIR` | str | `raw_resumes` | Source PDF directory |
+| `RESUME_DEFAULT` | str | *(required)* | Default resume profile text |
+| `RESUME_BACKEND` | str | *(optional)* | Backend-role profile text |
+| `RESUME_AI` | str | *(optional)* | AI/ML-role profile text |
 
 ---
 
@@ -652,11 +662,15 @@ The secret is missing or empty.  Check:
 
 ### `FileNotFoundError: No resume profile found for type 'backend'`
 
-Run the preprocessing script first:
-```bash
-python scripts/process_resume.py
-```
-Verify that `resumes/backend.txt` exists and is non-empty, then commit it.
+The runtime checks `RESUME_BACKEND` env var first, then `resumes/backend.txt` locally.
+
+**In GitHub Actions:** Add a `RESUME_BACKEND` Repository Variable under
+**Settings → Secrets and variables → Actions → Variables**.  Generate the
+content with `python scripts/process_resume.py` and paste the text of
+`resumes/backend.txt`.
+
+**Locally:** Run `python scripts/process_resume.py` so that `resumes/backend.txt`
+exists, or set `RESUME_BACKEND` in your `.env` file.
 
 ### OAuth2 token generation returns no refresh token
 

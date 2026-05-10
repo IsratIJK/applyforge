@@ -26,7 +26,7 @@ const tutorials = [
     steps: [
       "Create spreadsheet headers: `status`, `company`, `role`, `job_id`, `link`, `description`, `resume_type`.",
       "Place PDFs inside `raw_resumes/` with filenames matching `resume_type` keys.",
-      "Run `python scripts/process_resume.py` to generate committed profiles in `resumes/`."
+      "Run `python scripts/process_resume.py`, then paste each profile's text into a GitHub Variable: `RESUME_DEFAULT`, `RESUME_BACKEND`, etc."
     ]
   },
   {
@@ -45,7 +45,7 @@ const tutorials = [
     summary: "Move working local setup into GitHub Actions so jobs process on schedule.",
     steps: [
       "Add required secrets: `OPENAI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT`, and OAuth values.",
-      "Add variables like `GOOGLE_DRIVE_FOLDER_ID`, `OPENAI_MODEL`, and `MAX_JOBS_PER_RUN`.",
+      "Add variables like `GOOGLE_DRIVE_FOLDER_ID`, `OPENAI_MODEL`, `MAX_JOBS_PER_RUN`, and `RESUME_DEFAULT`.",
       "Trigger manual run from Actions UI before relying on cron."
     ]
   },
@@ -108,6 +108,14 @@ const configItems = [
   {
     name: "MAX_JOBS_PER_RUN",
     detail: "Default `10`. Caps API usage and run duration."
+  },
+  {
+    name: "RESUME_DEFAULT",
+    detail: "Required. Processed resume profile text (fallback for all resume types)."
+  },
+  {
+    name: "RESUME_BACKEND / RESUME_AI",
+    detail: "Optional. Type-specific resume profiles. Add RESUME_<TYPE> for each resume_type in your sheet."
   }
 ];
 
@@ -153,7 +161,7 @@ const directories = [
   },
   {
     name: "resumes/",
-    detail: "Committed text profiles used during generation."
+    detail: "Local .txt profiles for dev fallback only (gitignored). Profiles are set as GitHub Variables at runtime."
   },
   {
     name: "raw_resumes/",
