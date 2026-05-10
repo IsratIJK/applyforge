@@ -9,6 +9,8 @@ Runs every day at **1:00 AM Bangladesh Standard Time** via GitHub Actions.
 Every configuration value is tunable through environment variables or GitHub
 Actions Variables — no core code changes required.
 
+![ApplyForge overview](docs/assets/applyforge-overview.png)
+
 ---
 
 ## Table of Contents

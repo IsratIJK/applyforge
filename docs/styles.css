@@ -164,6 +164,18 @@ h3 {
   margin-top: 28px;
 }
 
+.hero-visual {
+  margin: 28px 0 0;
+}
+
+.hero-visual img {
+  display: block;
+  width: 100%;
+  border-radius: 22px;
+  border: 1px solid rgba(23, 20, 17, 0.08);
+  box-shadow: 0 20px 44px rgba(8, 16, 48, 0.16);
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -456,5 +468,9 @@ h3 {
 
   h1 {
     max-width: 100%;
+  }
+
+  .hero-visual {
+    margin-top: 22px;
   }
 }

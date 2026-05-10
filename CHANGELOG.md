@@ -7,6 +7,20 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.1] — 2026-05-10
+
+### Added
+
+- Added the new ApplyForge overview graphic under `docs/assets/` and embedded
+  it in both the docs homepage and the repository README.
+
+### Changed
+
+- Centralized the project hero image in a shared docs asset path so GitHub
+  Pages and GitHub README rendering stay in sync.
+
+---
+
 ## [1.4.0] — 2026-05-10
 
 ### Changed
@@ -127,6 +141,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.4.1]: https://github.com/FahimFBA/applyforge/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/FahimFBA/applyforge/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/FahimFBA/applyforge/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/FahimFBA/applyforge/compare/v1.2.0...v1.2.1
