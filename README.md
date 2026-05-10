@@ -363,7 +363,7 @@ type-specific variable is found.
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/your-username/applyforge.git
+git clone https://github.com/FahimFBA/applyforge.git
 cd applyforge
 ```
 
