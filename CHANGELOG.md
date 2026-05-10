@@ -7,6 +7,23 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.6.1] — 2026-05-11
+
+### Fixed
+
+- **Full Guide page stuck on "Loading README…"** — two bugs in `docs/readme.html`:
+  1. Heading renderer destructured `{ text, depth }` but in marked v9 the token
+     carries `{ tokens, depth }` — `text` is always `undefined`, causing
+     `text.replace(...)` to throw inside `marked.parse()`. Fixed by using
+     `{ tokens, depth }` and rendering via `this.parser.parseInline(tokens)`.
+  2. All post-fetch DOM manipulation was outside the `try/catch`, so any exception
+     produced a silent failure with no error shown. Entire `loadReadme` body is
+     now inside a single `try/catch`.
+- Heading slug generation strips HTML tags from the rendered text before slugifying,
+  so headings with inline markup (`**bold**`, `` `code` ``) produce clean anchor IDs.
+
+---
+
 ## [1.6.0] — 2026-05-11
 
 ### Added
@@ -195,6 +212,8 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.6.1]: https://github.com/FahimFBA/applyforge/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/FahimFBA/applyforge/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/FahimFBA/applyforge/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/FahimFBA/applyforge/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/FahimFBA/applyforge/compare/v1.3.0...v1.4.0
