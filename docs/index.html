@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Agent Docs</title>
+  <meta
+    name="description"
+    content="Tutorial hub and project reference for the Career Agent automated job application assistant."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <nav class="topbar">
+        <a class="brand" href="#top">Career Agent Docs</a>
+        <div class="topbar-links">
+          <a href="#tutorials">Tutorials</a>
+          <a href="#reference">Reference</a>
+          <a href="#workflow">Workflow</a>
+          <a href="../README.md">README</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid" id="top">
+        <section class="hero-copy">
+          <p class="eyebrow">Static Tutorial Hub</p>
+          <h1>Run job-application automation without guessing setup order.</h1>
+          <p class="hero-text">
+            This project reads pending jobs from Google Sheets, generates tailored
+            cover letters and recruiter emails with OpenAI, writes `.md` and `.docx`
+            files, then uploads them to Google Drive on a daily schedule.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#tutorials">Start Tutorials</a>
+            <a class="button button-secondary" href="#reference">Open Reference</a>
+          </div>
+        </section>
+
+        <aside class="hero-panel">
+          <div class="metric-card">
+            <span class="metric-label">Default Schedule</span>
+            <strong>1:00 AM BST</strong>
+            <span class="metric-sub">GitHub Actions cron `0 19 * * *` UTC</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Outputs</span>
+            <strong>Markdown + DOCX</strong>
+            <span class="metric-sub">Recruiter email `.md`, cover letter `.md` + `.docx`</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Primary Integrations</span>
+            <strong>Sheets, Drive, OpenAI</strong>
+            <span class="metric-sub">Scraping fills missing job descriptions</span>
+          </div>
+        </aside>
+      </div>
+    </header>
+
+    <main>
+      <section class="section section-accent" id="tutorials">
+        <div class="section-heading">
+          <p class="eyebrow">Tutorials</p>
+          <h2>Follow setup in real execution order.</h2>
+          <p>
+            Each card covers one stage of project adoption, from first clone to daily automation.
+          </p>
+        </div>
+        <div class="tutorial-grid" id="tutorial-grid"></div>
+      </section>
+
+      <section class="section" id="workflow">
+        <div class="section-heading">
+          <p class="eyebrow">Workflow</p>
+          <h2>How one job row becomes generated documents.</h2>
+        </div>
+        <div class="workflow-board" id="workflow-board"></div>
+      </section>
+
+      <section class="section" id="reference">
+        <div class="section-heading">
+          <p class="eyebrow">Reference</p>
+          <h2>Relevant data in one place.</h2>
+          <p>
+            Defaults, status values, folders, and test coverage summarized for quick lookup.
+          </p>
+        </div>
+
+        <div class="reference-grid">
+          <article class="panel">
+            <div class="panel-head">
+              <h3>Core Configuration</h3>
+              <span class="panel-kicker">Env Vars</span>
+            </div>
+            <div class="table-list" id="config-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h3>Spreadsheet Status Flow</h3>
+              <span class="panel-kicker">State Machine</span>
+            </div>
+            <div class="status-list" id="status-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h3>Project Directories</h3>
+              <span class="panel-kicker">File Layout</span>
+            </div>
+            <div class="directory-list" id="directory-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h3>Test Coverage</h3>
+              <span class="panel-kicker">Current Suite</span>
+            </div>
+            <div class="test-list" id="test-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section-accent" id="commands">
+        <div class="section-heading">
+          <p class="eyebrow">Command Deck</p>
+          <h2>High-value commands you actually run.</h2>
+        </div>
+        <div class="command-grid" id="command-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

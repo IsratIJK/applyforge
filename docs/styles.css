@@ -1,0 +1,460 @@
+:root {
+  --bg: #f5efe4;
+  --bg-strong: #efe5d4;
+  --ink: #171411;
+  --muted: #5b5147;
+  --line: rgba(23, 20, 17, 0.12);
+  --panel: rgba(255, 252, 246, 0.82);
+  --panel-strong: #fffaf1;
+  --accent: #0c7c59;
+  --accent-strong: #084c61;
+  --accent-soft: #d8efe7;
+  --warm: #c4632f;
+  --shadow: 0 18px 50px rgba(31, 24, 16, 0.12);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --max-width: 1180px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(196, 99, 47, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(12, 124, 89, 0.14), transparent 24%),
+    linear-gradient(180deg, #f9f3e8 0%, #f5efe4 100%);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-shell {
+  width: min(calc(100% - 32px), var(--max-width));
+  margin: 0 auto;
+  padding: 20px 0 64px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.72);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 14px;
+  z-index: 10;
+}
+
+.brand,
+.topbar-links a,
+.eyebrow,
+.metric-label,
+.panel-kicker {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.brand {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.topbar-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 0.96rem;
+}
+
+.hero {
+  padding: 16px 0 34px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  gap: 24px;
+  margin-top: 26px;
+  align-items: stretch;
+}
+
+.hero-copy,
+.hero-panel,
+.panel,
+.command-card,
+.tutorial-card,
+.workflow-step {
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.hero-copy {
+  padding: 36px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(255, 250, 241, 0.98), rgba(255, 246, 231, 0.84));
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--warm);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.02;
+}
+
+h1 {
+  max-width: 12ch;
+  font-size: clamp(2.8rem, 6vw, 5.6rem);
+}
+
+h2 {
+  max-width: 16ch;
+  font-size: clamp(2rem, 3vw, 3.4rem);
+}
+
+h3 {
+  font-size: 1.28rem;
+}
+
+.hero-text,
+.section-heading p,
+.tutorial-card p,
+.workflow-step p,
+.list-item p,
+.command-card p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.hero-text {
+  max-width: 60ch;
+  margin: 20px 0 0;
+  font-size: 1.08rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button-primary {
+  color: #fefefe;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+}
+
+.button-secondary {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.hero-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, rgba(12, 124, 89, 0.1), rgba(8, 76, 97, 0.12)),
+    rgba(255, 252, 246, 0.92);
+}
+
+.metric-card {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 250, 241, 0.9);
+  border: 1px solid rgba(23, 20, 17, 0.08);
+}
+
+.metric-card strong {
+  font-size: 1.28rem;
+}
+
+.metric-label,
+.metric-sub,
+.panel-kicker {
+  color: var(--muted);
+}
+
+.metric-label,
+.panel-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric-sub {
+  line-height: 1.6;
+  font-size: 0.96rem;
+}
+
+.section {
+  padding: 52px 0 10px;
+}
+
+.section-accent {
+  position: relative;
+}
+
+.section-accent::before {
+  content: "";
+  position: absolute;
+  inset: 20px 0 0;
+  background: linear-gradient(180deg, rgba(216, 239, 231, 0.6), rgba(216, 239, 231, 0));
+  border-radius: var(--radius-xl);
+  z-index: -1;
+}
+
+.section-heading {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.section-heading p {
+  max-width: 60ch;
+  margin: 0;
+}
+
+.tutorial-grid,
+.workflow-board,
+.reference-grid,
+.command-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.tutorial-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-board {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.reference-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.command-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tutorial-card,
+.workflow-step,
+.panel,
+.command-card {
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+}
+
+.tutorial-card {
+  display: grid;
+  gap: 14px;
+}
+
+.tutorial-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--panel-strong);
+  background: linear-gradient(135deg, var(--warm), #d98b4f);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.94rem;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(8, 76, 97, 0.08);
+  color: var(--accent-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.step-list,
+.list-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.step-list li,
+.list-item {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.workflow-step {
+  display: grid;
+  gap: 12px;
+}
+
+.workflow-step-number {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+}
+
+.panel {
+  background: rgba(255, 252, 246, 0.92);
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.table-list,
+.status-list,
+.directory-list,
+.test-list {
+  display: grid;
+  gap: 12px;
+}
+
+.list-item {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(245, 239, 228, 0.84);
+  border: 1px solid rgba(23, 20, 17, 0.07);
+}
+
+.list-item strong,
+.command-card strong,
+.tutorial-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.list-item p,
+.command-card p,
+.tutorial-card p,
+.workflow-step p {
+  margin: 0;
+}
+
+.command-card code,
+.tutorial-card code,
+.list-item code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.92rem;
+}
+
+.command-card code {
+  display: block;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #151311;
+  color: #f4ede2;
+  overflow-x: auto;
+}
+
+@media (max-width: 1024px) {
+  .hero-grid,
+  .tutorial-grid,
+  .reference-grid,
+  .command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    width: min(calc(100% - 20px), var(--max-width));
+    padding-top: 12px;
+  }
+
+  .topbar {
+    border-radius: 24px;
+    padding: 16px;
+  }
+
+  .topbar,
+  .panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero-copy,
+  .hero-panel,
+  .tutorial-card,
+  .workflow-step,
+  .panel,
+  .command-card {
+    padding: 18px;
+  }
+
+  .workflow-board {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    max-width: 100%;
+  }
+}

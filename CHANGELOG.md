@@ -7,6 +7,23 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.3.0] — 2026-05-10
+
+### Added
+
+- Static documentation website under `docs/` with tutorial cards, workflow
+  overview, configuration highlights, project layout, status values, and command
+  reference.
+- GitHub Pages deployment workflow at `.github/workflows/docs-site.yml` for
+  publishing the `docs/` directory from GitHub Actions.
+
+### Changed
+
+- README now links and documents the new docs website, local preview command,
+  GitHub Pages activation steps, and updated project structure.
+
+---
+
 ## [1.2.1] — 2026-05-10
 
 ### Added
@@ -99,6 +116,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
 [1.2.1]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.2.0...v1.2.1
+[1.3.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.2.1...v1.3.0
 [1.2.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/FahimFBA/career-agent-email-cover/releases/tag/v1.0.0
