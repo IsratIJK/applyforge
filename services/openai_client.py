@@ -1,7 +1,7 @@
 """
 services/openai_client.py
 =========================
-Reusable OpenAI chat-completion client for the career-agent-email-cover project.
+Reusable OpenAI chat-completion client for the applyforge project.
 
 Design decisions
 ----------------

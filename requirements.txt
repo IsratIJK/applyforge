@@ -1,5 +1,5 @@
 # ============================================================
-# career-agent-email-cover — Python dependencies
+# applyforge — Python dependencies
 # Python 3.11+
 # ============================================================
 

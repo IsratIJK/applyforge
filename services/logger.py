@@ -1,7 +1,7 @@
 """
 services/logger.py
 ==================
-Structured logging setup for the career-agent-email-cover project.
+Structured logging setup for the applyforge project.
 
 Every module gets its own named logger via ``setup_logger(__name__)``.
 Logs are written to both stdout (for GitHub Actions) and a dated log file

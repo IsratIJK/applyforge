@@ -1,7 +1,7 @@
 """
 services/drive.py
 =================
-Google Drive integration for the career-agent-email-cover project.
+Google Drive integration for the applyforge project.
 
 Responsibilities
 ----------------

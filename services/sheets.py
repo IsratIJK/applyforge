@@ -1,7 +1,7 @@
 """
 services/sheets.py
 ==================
-Google Sheets integration for the career-agent-email-cover project.
+Google Sheets integration for the applyforge project.
 
 Responsibilities
 ----------------

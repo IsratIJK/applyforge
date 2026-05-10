@@ -1,7 +1,7 @@
 """
 services/document_generator.py
 ================================
-Document generation service for the career-agent-email-cover project.
+Document generation service for the applyforge project.
 
 Produces two output formats per job application:
   * Markdown (.md)  — human-readable, easy to paste into email clients.

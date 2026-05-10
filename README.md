@@ -1,4 +1,4 @@
-# career-agent-email-cover
+# ApplyForge
 
 Automated daily job-application assistant.  Reads your job list from a Google
 Spreadsheet, generates a personalized cover letter and recruiter email for each
@@ -100,7 +100,7 @@ To enable it in GitHub:
 ## Project Structure
 
 ```
-career-agent-email-cover/
+applyforge/
 │
 ├── .github/
 │   └── workflows/
@@ -175,7 +175,7 @@ career-agent-email-cover/
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com).
 2. Click **Select a project** → **New Project**.
-3. Name it (e.g. `career-agent`) and click **Create**.
+3. Name it (e.g. `applyforge`) and click **Create**.
 
 ### Step 2 — Enable APIs
 
@@ -194,7 +194,7 @@ APIs & Services → Library → search "Google Drive API" → Enable
 ### Step 3 — Create a Service Account (for Sheets access)
 
 1. Go to **IAM & Admin → Service Accounts → Create Service Account**.
-2. Name it (e.g. `career-agent-sa`).
+2. Name it (e.g. `applyforge-sa`).
 3. No roles needed at project level — access is granted per-spreadsheet.
 4. Click **Done**.
 
@@ -217,7 +217,7 @@ storage quota errors. This requires a one-time OAuth2 setup.
 1. Still in the same GCP project, go to **APIs & Services → Credentials**.
 2. Click **+ Create Credentials → OAuth 2.0 Client ID**.
 3. If prompted, configure the OAuth consent screen first:
-   - User type: **External** → fill in app name (e.g. `Career Agent`) → save.
+   - User type: **External** → fill in app name (e.g. `ApplyForge`) → save.
 4. Application type: **Desktop app** → name it → **Create**.
 5. Click **Download JSON** → save as `oauth_client.json` in the project root.
    (`oauth_client.json` is gitignored — it will not be committed.)
@@ -353,8 +353,8 @@ Actions can access them at runtime without re-running preprocessing.
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/your-username/career-agent-email-cover.git
-cd career-agent-email-cover
+git clone https://github.com/your-username/applyforge.git
+cd applyforge
 ```
 
 ### Step 2 — Create a virtual environment
@@ -462,7 +462,7 @@ python -m unittest discover -s tests -v
 ### Step 1 — Push the repository to GitHub
 
 ```bash
-git remote add origin https://github.com/your-username/career-agent-email-cover.git
+git remote add origin https://github.com/FahimFBA/applyforge.git
 git push -u origin main
 ```
 
@@ -513,7 +513,7 @@ git push
 
 ### Step 5 — Verify the workflow
 
-Go to **Actions → Career Agent Automation → Run workflow** to trigger a manual
+Go to **Actions → ApplyForge Automation → Run workflow** to trigger a manual
 run and confirm everything works before relying on the daily schedule.
 
 ---
@@ -693,7 +693,7 @@ Ensure `main.py` and the `services/` directory are at the repository root
 
 In GitHub Actions:
 ```
-Actions → Career Agent Automation → [run] → run-automation → Run career agent automation
+Actions → ApplyForge Automation → [run] → run-automation → Run ApplyForge automation
 ```
 
 Locally, check `logs/automation_YYYYMMDD.log`.

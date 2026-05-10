@@ -7,6 +7,18 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.4.0] — 2026-05-10
+
+### Changed
+
+- Rebranded project from `career-agent-email-cover` / "Career Agent" to
+  `applyforge` / "ApplyForge" across README, docs site, workflows, config
+  references, and runtime-facing labels.
+- Updated clone examples, GitHub Actions workflow names, Google Cloud naming
+  examples, and release metadata to use the new project name consistently.
+
+---
+
 ## [1.3.0] — 2026-05-10
 
 ### Added
@@ -115,8 +127,9 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
-[1.2.1]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.2.0...v1.2.1
-[1.3.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.2.1...v1.3.0
-[1.2.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/FahimFBA/career-agent-email-cover/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/FahimFBA/career-agent-email-cover/releases/tag/v1.0.0
+[1.4.0]: https://github.com/FahimFBA/applyforge/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/FahimFBA/applyforge/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/FahimFBA/applyforge/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/FahimFBA/applyforge/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/FahimFBA/applyforge/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/FahimFBA/applyforge/releases/tag/v1.0.0

@@ -6,8 +6,8 @@
 #   1. Add the new version block to CHANGELOG.md
 #   2. Commit and push
 #   3. Tag the commit and push the tag:
-#        git tag v1.3.0
-#        git push origin v1.3.0
+#        git tag v1.4.0
+#        git push origin v1.4.0
 #   GitHub creates the release automatically with the changelog body.
 #
 # Tag format: v<major>.<minor>.<patch>  (must match a [X.Y.Z] entry in CHANGELOG.md)

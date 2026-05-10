@@ -1,7 +1,7 @@
 """
 services/prompts.py
 ===================
-All AI prompt templates for the career-agent-email-cover project.
+All AI prompt templates for the applyforge project.
 
 Design principles
 -----------------

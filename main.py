@@ -1,7 +1,7 @@
 """
 main.py
 =======
-Career Agent — Automated Email & Cover Letter Generator
+ApplyForge — Automated Email & Cover Letter Generator
 
 Entry point for the daily GitHub Actions workflow.
 
@@ -209,7 +209,7 @@ def main() -> None:
 
     logger = setup_logger("main", log_level=config.log_level, logs_dir=config.logs_dir)
     logger.info("=" * 60)
-    logger.info("Career Agent starting")
+    logger.info("ApplyForge starting")
     logger.info(f"Model: {config.openai_model} | Max jobs: {config.max_jobs_per_run}")
     logger.info("=" * 60)
 

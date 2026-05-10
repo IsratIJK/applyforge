@@ -1,5 +1,5 @@
 # ============================================================================
-# Career Agent — Daily Job Application Automation
+# ApplyForge — Daily Job Application Automation
 # ============================================================================
 #
 # Runs every day at 1:00 AM Bangladesh Standard Time (BST = UTC+6).
@@ -12,7 +12,7 @@
 #              schedule trigger — the cron must be a literal value here).
 #
 # Manual runs:
-#   Go to Actions → Career Agent Automation → Run workflow
+#   Go to Actions → ApplyForge Automation → Run workflow
 #   You can override MAX_JOBS_PER_RUN and LOG_LEVEL per manual run.
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions → Secrets):
@@ -34,7 +34,7 @@
 #   SCRAPE_RETRIES               — default: "2"
 # ============================================================================
 
-name: Career Agent Automation
+name: ApplyForge Automation
 
 on:
   # ----- Scheduled trigger -----
@@ -94,7 +94,7 @@ jobs:
       # Secrets are passed as environment variables — never written to disk.
       # Variables use vars.NAME with a fallback default via the || operator.
       # Manual-run inputs take precedence over Variables for their respective fields.
-      - name: Run career agent automation
+      - name: Run ApplyForge automation
         env:
           # --- Required secrets ---
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

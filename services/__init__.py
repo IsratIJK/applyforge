@@ -1,7 +1,7 @@
 """
 services package
 ================
-Modular service layer for the career-agent-email-cover project.
+Modular service layer for the applyforge project.
 
 Modules
 -------

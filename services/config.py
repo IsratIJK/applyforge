@@ -1,7 +1,7 @@
 """
 services/config.py
 ==================
-Centralized configuration management for the career-agent-email-cover project.
+Centralized configuration management for the applyforge project.
 
 All tuneable values are read from environment variables so that behaviour can
 be changed via GitHub Actions Variables / Secrets or a local .env file without

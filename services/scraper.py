@@ -1,7 +1,7 @@
 """
 services/scraper.py
 ===================
-Job-description web scraper for the career-agent-email-cover project.
+Job-description web scraper for the applyforge project.
 
 Technology choices
 ------------------
