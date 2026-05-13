@@ -1,20 +1,21 @@
-"""
-scripts/generate_refresh_token.py
-==================================
-One-time script to generate an OAuth2 refresh token for Google Drive access.
+# By: Md. Fahim Bin Amin
+# One-time script to generate an OAuth2 refresh token for Google Drive access.
 
-Run this locally ONCE.  A browser window will open — log in with the Google
-account that owns the Drive folder where outputs should be saved.  The refresh
-token is printed at the end; copy it to the GitHub Secret.
+"""
+Run this locally once.
+
+A browser window will open - log in with the Google account that owns the Drive folder where outputs should be saved.
+The refresh token is printed at the end. Copy it to the GitHub Secret.
 
 Prerequisites
 -------------
-1. GCP Console → APIs & Services → Credentials → + Create Credentials →
-   OAuth 2.0 Client ID → Application type: Desktop app → Download JSON.
-2. Save the downloaded file as ``oauth_client.json`` in the project root
-   (it is already listed in .gitignore — never commit it).
+1. GCP Console -> APIs & Services -> Credentials -> + Create Credentials -> OAuth 2.0 Client ID ->
+                                                                        Application type: Desktop app -> Download JSON.
+2. Save the downloaded file as ``oauth_client.json`` in the project root (it is already listed in .gitignore - never
+   commit it).
 3. Run this script:
-       python scripts/generate_refresh_token.py
+       python scripts/generate_refresh_token.py (Windows)
+       python3 scripts/generate_refresh_token.py (Mac/Linux)
 4. Authorise in the browser.
 5. Copy the printed values into GitHub Secrets:
        GOOGLE_OAUTH_CLIENT_ID
@@ -22,29 +23,27 @@ Prerequisites
        GOOGLE_OAUTH_REFRESH_TOKEN
 6. Delete ``oauth_client.json`` from your machine.
 
-Alternatively, if you prefer not to save the JSON file, set
-GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in your .env file
-and run the script — it will read them from the environment.
+Alternatively, if you prefer not to save the JSON file, set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in
+your .env file and run the script - it will read them from the environment.
 """
 from __future__ import annotations
-
+from dotenv import load_dotenv
+from pathlib import Path
 import json
 import os
 import sys
-from pathlib import Path
+
 
 # Allow running directly from the project root or from the scripts/ directory
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
 load_dotenv()
 
-_SCOPES = ["https://www.googleapis.com/auth/drive"]
-_CLIENT_SECRET_FILE = Path(__file__).parent.parent / "oauth_client.json"
+SCOPES = ["https://www.googleapis.com/auth/drive"]
+CLIENT_SECRET_FILE = Path(__file__).parent.parent / "oauth_client.json"
 
 
-def _load_flow():
+def load_flow():
     """
     Build an InstalledAppFlow from the client-secret JSON file or env vars.
 
@@ -59,16 +58,16 @@ def _load_flow():
         print("Run:  pip install google-auth-oauthlib")
         sys.exit(1)
 
-    if _CLIENT_SECRET_FILE.exists():
-        print(f"Using client secret file: {_CLIENT_SECRET_FILE}\n")
-        return InstalledAppFlow.from_client_secrets_file(str(_CLIENT_SECRET_FILE), _SCOPES)
+    if CLIENT_SECRET_FILE.exists():
+        print(f"Using client secret file: {CLIENT_SECRET_FILE}\n")
+        return InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET_FILE), SCOPES)
 
     # Fall back to env vars
     client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
     client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
     if not client_id or not client_secret:
-        print(f"ERROR: '{_CLIENT_SECRET_FILE}' not found.")
+        print(f"ERROR: '{CLIENT_SECRET_FILE}' not found.")
         print("Either download it from GCP Console (OAuth 2.0 Client IDs → Desktop app)")
         print("or set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in .env\n")
         sys.exit(1)
@@ -83,12 +82,12 @@ def _load_flow():
             "redirect_uris": ["http://localhost"],
         }
     }
-    return InstalledAppFlow.from_client_config(client_config, _SCOPES)
+    return InstalledAppFlow.from_client_config(client_config, SCOPES)
 
 
 def main() -> None:
     """Run the OAuth2 flow, print the refresh token, and exit."""
-    flow = _load_flow()
+    flow = load_flow()
 
     print("Opening browser for Google authentication.")
     print("Log in with the account that owns your Drive folder.\n")
@@ -106,14 +105,14 @@ def main() -> None:
 
     # Extract client credentials from the flow for display
     client_id = getattr(flow, "client_config", {}).get("client_id", "") or (
-        _read_client_id_from_file()
+        read_client_id_from_file()
     )
     client_secret = getattr(flow, "client_config", {}).get("client_secret", "") or (
-        _read_client_secret_from_file()
+        read_client_secret_from_file()
     )
 
     print("\n" + "=" * 65)
-    print("SUCCESS — add these three values to GitHub Secrets / .env:\n")
+    print("SUCCESS - add these three values to GitHub Secrets / .env:\n")
     if client_id:
         print(f"GOOGLE_OAUTH_CLIENT_ID={client_id}")
     if client_secret:
@@ -127,21 +126,21 @@ def main() -> None:
     print("IMPORTANT: Delete oauth_client.json after copying the values above.")
 
 
-def _read_client_id_from_file() -> str:
+def read_client_id_from_file() -> str:
     """Read client_id from oauth_client.json if it exists."""
-    return _read_field_from_file("client_id")
+    return read_field_from_file("client_id")
 
 
-def _read_client_secret_from_file() -> str:
+def read_client_secret_from_file() -> str:
     """Read client_secret from oauth_client.json if it exists."""
-    return _read_field_from_file("client_secret")
+    return read_field_from_file("client_secret")
 
 
-def _read_field_from_file(field: str) -> str:
-    if not _CLIENT_SECRET_FILE.exists():
+def read_field_from_file(field: str) -> str:
+    if not CLIENT_SECRET_FILE.exists():
         return ""
     try:
-        data = json.loads(_CLIENT_SECRET_FILE.read_text())
+        data = json.loads(CLIENT_SECRET_FILE.read_text())
         installed = data.get("installed", data.get("web", {}))
         return installed.get(field, "")
     except Exception:
