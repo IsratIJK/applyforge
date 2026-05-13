@@ -3,9 +3,7 @@ services/document_generator.py
 ================================
 Document generation service for the applyforge project.
 
-Produces two output formats per job application:
-  * Markdown (.md)  — human-readable, easy to paste into email clients.
-  * DOCX (.docx)    — professional format for formal applications.
+Produces Markdown and DOCX output formats per job application.
 
 Uses ``python-docx`` for DOCX generation.  No external LibreOffice or
 headless browser is required, so this works cleanly inside GitHub Actions.
@@ -17,6 +15,7 @@ Usage
 
     paths = build_output_paths(Path("output"), "Acme Corp", "JOB-123")
     save_markdown(email_text, paths["email_md"])
+    save_docx(email_text, paths["email_docx"], title="Recruiter Email")
     save_docx(cover_letter_text, paths["cover_letter_docx"], title="Cover Letter")
 """
 from __future__ import annotations
@@ -114,7 +113,8 @@ def build_output_paths(output_dir: Path, company: str, job_id: str) -> dict[str,
     Returns
     -------
     dict[str, Path]
-        Keys: ``email_md``, ``cover_letter_md``, ``cover_letter_docx``.
+        Keys: ``email_md``, ``email_docx``, ``cover_letter_md``,
+        ``cover_letter_docx``.
     """
     # Sanitise: keep alphanumerics, spaces, hyphens, underscores; replace rest
     safe_company = re.sub(r"[^\w\s\-]", "_", company).strip()
@@ -129,6 +129,7 @@ def build_output_paths(output_dir: Path, company: str, job_id: str) -> dict[str,
 
     return {
         "email_md": job_dir / f"{prefix}_recruiter_email.md",
+        "email_docx": job_dir / f"{prefix}_recruiter_email.docx",
         "cover_letter_md": job_dir / f"{prefix}_cover_letter.md",
         "cover_letter_docx": job_dir / f"{prefix}_cover_letter.docx",
     }

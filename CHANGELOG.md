@@ -7,6 +7,30 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.7.0] — 2026-05-13
+
+### Added
+
+- Per-job spreadsheet output toggles:
+  `will_ai_generate_email_draft_md`,
+  `will_ai_generate_email_draft_docs`,
+  `will_ai_generate_coverletter_md`, and
+  `will_ai_generate_coverletter_docs`. Values accept `yes` / `no`, and blank
+  values default to `yes`.
+- `job_full_desc` spreadsheet column. When the cell contains at least 20 words,
+  ApplyForge uses that text directly and skips visiting the job link.
+- Unit test coverage for spreadsheet parsing and main per-job generation flow.
+
+### Changed
+
+- `main.py` now generates and uploads only the email / cover letter formats
+  requested for each row instead of always producing both `.md` and `.docx`
+  outputs.
+- Docs site spreadsheet tables now wrap safely inside a horizontal scroll
+  container instead of stretching past the page width.
+
+---
+
 ## [1.6.2] — 2026-05-11
 
 ### Fixed
@@ -227,6 +251,8 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
 [1.6.1]: https://github.com/FahimFBA/applyforge/compare/v1.6.0...v1.6.1
+[1.7.0]: https://github.com/FahimFBA/applyforge/compare/v1.6.2...v1.7.0
+[1.6.2]: https://github.com/FahimFBA/applyforge/compare/v1.6.1...v1.6.2
 [1.6.0]: https://github.com/FahimFBA/applyforge/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/FahimFBA/applyforge/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/FahimFBA/applyforge/compare/v1.4.0...v1.4.1

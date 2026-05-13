@@ -24,8 +24,10 @@ const tutorials = [
     tags: ["Sheet Schema", "PDF Intake", "Resume Types"],
     summary: "Make input sheet match expected columns and turn PDFs into compact text profiles.",
     steps: [
-      "Create spreadsheet headers: `status`, `company`, `role`, `job_id`, `link`, `description`, `resume_type`.",
+      "Create spreadsheet headers: `status`, `company`, `role`, `job_id`, `link`, `description`, `job_full_desc`, `resume_type`, `will_ai_generate_email_draft_md`, `will_ai_generate_email_draft_docs`, `will_ai_generate_coverletter_md`, `will_ai_generate_coverletter_docs`.",
       "Place PDFs inside `raw_resumes/` with filenames matching `resume_type` keys.",
+      "If `job_full_desc` has 20+ words, automation uses it directly and skips scraping job link.",
+      "Use `yes` or `no` in AI output columns. Leave blank to default to `yes`.",
       "Run `python scripts/process_resume.py`, then paste each profile's text into a GitHub Variable: `RESUME_DEFAULT`, `RESUME_BACKEND`, etc."
     ]
   },
@@ -72,11 +74,11 @@ const workflow = [
   },
   {
     title: "Generate tailored drafts",
-    body: "Load matching resume profile, then create cover letter and recruiter email with OpenAI."
+    body: "Load matching resume profile, then create only row-enabled cover letter and recruiter email drafts with OpenAI."
   },
   {
     title: "Write output files",
-    body: "Save recruiter email as Markdown and cover letter as Markdown plus DOCX."
+    body: "Save only requested Markdown and/or DOCX variants for recruiter email and cover letter."
   },
   {
     title: "Upload and mark done",

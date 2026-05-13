@@ -89,6 +89,7 @@ class DocumentGeneratorTests(unittest.TestCase):
 
             expected_dir = output_dir / "Acme_Corp__Ltd"
             self.assertEqual(paths["email_md"], expected_dir / "Acme_Corp__Ltd_JOB-123_recruiter_email.md")
+            self.assertEqual(paths["email_docx"], expected_dir / "Acme_Corp__Ltd_JOB-123_recruiter_email.docx")
             self.assertEqual(paths["cover_letter_md"], expected_dir / "Acme_Corp__Ltd_JOB-123_cover_letter.md")
             self.assertEqual(paths["cover_letter_docx"], expected_dir / "Acme_Corp__Ltd_JOB-123_cover_letter.docx")
             self.assertTrue(expected_dir.exists())

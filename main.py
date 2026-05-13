@@ -13,9 +13,9 @@ Automation flow
     a.  Mark row as "processing".
     b.  Scrape job description from the link if none is in the sheet.
     c.  Load the matching optimized resume profile from resumes/.
-    d.  Generate a cover letter and recruiter email via OpenAI.
-    e.  Save outputs as .md (both) and .docx (cover letter).
-    f.  Upload all generated files to Google Drive under Applications/<Company>/.
+    d.  Generate recruiter email / cover letter only when that row requests them.
+    e.  Save requested outputs as .md and/or .docx.
+    f.  Upload generated files to Google Drive under Applications/<Company>/.
     g.  Mark row as "draft generated".
 4.  On any per-job failure: mark as "failed", log the error, continue.
 5.  Log a final summary of successes and failures.
@@ -57,6 +57,13 @@ from services.sheets import JobRow, SheetsService
 # Per-job processing                                                         #
 # ======================================================================== #
 
+
+def _has_minimum_word_count(text: str | None, minimum_words: int = 20) -> bool:
+    """Return ``True`` when text contains at least ``minimum_words`` words."""
+    if not text:
+        return False
+    return len(text.split()) >= minimum_words
+
 def process_job(
     job: JobRow,
     config,
@@ -91,98 +98,138 @@ def process_job(
     sheets.update_status(job.row_index, config.status_processing)
 
     # ---- Step 2: Resolve job description ----
-    job_description = job.description
+    if _has_minimum_word_count(job.job_full_desc):
+        logger.info("Using job_full_desc from spreadsheet; skipping scraping")
+        job_description = job.job_full_desc
+    else:
+        if job.job_full_desc:
+            logger.info("job_full_desc present but under 20 words; falling back to normal resolution")
+        job_description = job.description
 
-    if not job_description:
-        if not job.link:
-            logger.warning(
-                f"Row {job.row_index}: no description and no link — "
-                f"using minimal fallback context"
-            )
-            job_description = f"Role: {job.role} at {job.company}."
-        else:
-            logger.info(f"Description missing — scraping: {job.link}")
-            job_description = scraper.fetch_job_description(job.link)
-
-            if not job_description:
-                # Scrape failed — use a minimal stub so generation still runs
+        if not job_description:
+            if not job.link:
                 logger.warning(
-                    f"Scrape failed for {job.company} — using fallback description"
+                    f"Row {job.row_index}: no description and no link — "
+                    f"using minimal fallback context"
                 )
-                job_description = (
-                    f"Role: {job.role} at {job.company}. "
-                    f"See full details at: {job.link}"
-                )
+                job_description = f"Role: {job.role} at {job.company}."
+            else:
+                logger.info(f"Description missing — scraping: {job.link}")
+                job_description = scraper.fetch_job_description(job.link)
+
+                if not job_description:
+                    # Scrape failed — use a minimal stub so generation still runs
+                    logger.warning(
+                        f"Scrape failed for {job.company} — using fallback description"
+                    )
+                    job_description = (
+                        f"Role: {job.role} at {job.company}. "
+                        f"See full details at: {job.link}"
+                    )
 
     # ---- Step 3: Load optimized resume profile ----
     # Truncating is not needed here — optimized profiles are already compact
     resume_profile = load_resume_profile(config.resumes_dir, job.resume_type)
 
-    # ---- Step 4: Generate cover letter via OpenAI ----
-    logger.info("Generating cover letter...")
-    cover_letter = openai.generate(
-        system_prompt=COVER_LETTER_SYSTEM,
-        user_prompt=COVER_LETTER_USER.format(
-            resume_profile=resume_profile,
-            company=job.company,
-            role=job.role,
-            # Cap JD to 4 000 chars to stay within a sensible context budget
-            job_description=job_description[:4_000],
-        ),
-        max_tokens=600,
+    should_generate_email = (
+        job.will_ai_generate_email_draft_md or job.will_ai_generate_email_draft_docs
+    )
+    should_generate_cover_letter = (
+        job.will_ai_generate_coverletter_md or job.will_ai_generate_coverletter_docs
     )
 
-    # ---- Step 5: Generate recruiter email via OpenAI ----
-    logger.info("Generating recruiter email...")
-    recruiter_email = openai.generate(
-        system_prompt=RECRUITER_EMAIL_SYSTEM,
-        user_prompt=RECRUITER_EMAIL_USER.format(
-            resume_profile=resume_profile,
-            company=job.company,
-            role=job.role,
-            # Slightly shorter cap for the email — it needs less JD context
-            job_description=job_description[:3_000],
-        ),
-        max_tokens=400,
-    )
+    recruiter_email: str | None = None
+    cover_letter: str | None = None
 
-    # ---- Step 6: Build output file paths ----
-    paths = build_output_paths(config.output_dir, job.company, job.job_id)
+    # ---- Step 4: Generate requested content via OpenAI ----
+    if should_generate_cover_letter:
+        logger.info("Generating cover letter...")
+        cover_letter = openai.generate(
+            system_prompt=COVER_LETTER_SYSTEM,
+            user_prompt=COVER_LETTER_USER.format(
+                resume_profile=resume_profile,
+                company=job.company,
+                role=job.role,
+                # Cap JD to 4 000 chars to stay within a sensible context budget
+                job_description=job_description[:4_000],
+            ),
+            max_tokens=600,
+        )
+    else:
+        logger.info("Skipping cover letter generation for this row")
 
-    # ---- Step 7: Save files ----
-    # Recruiter email: Markdown only (easy to paste into Gmail / Outlook)
-    email_md_content = (
-        f"# Recruiter Email — {job.company}\n"
-        f"**Role:** {job.role}  \n"
-        f"**Job ID:** {job.job_id or 'N/A'}  \n"
-        f"**Link:** {job.link or 'N/A'}\n\n"
-        f"---\n\n"
-        f"{recruiter_email}"
-    )
-    save_markdown(email_md_content, paths["email_md"])
+    if should_generate_email:
+        logger.info("Generating recruiter email...")
+        recruiter_email = openai.generate(
+            system_prompt=RECRUITER_EMAIL_SYSTEM,
+            user_prompt=RECRUITER_EMAIL_USER.format(
+                resume_profile=resume_profile,
+                company=job.company,
+                role=job.role,
+                # Slightly shorter cap for the email — it needs less JD context
+                job_description=job_description[:3_000],
+            ),
+            max_tokens=400,
+        )
+    else:
+        logger.info("Skipping recruiter email generation for this row")
 
-    # Cover letter: both Markdown and DOCX
-    cover_md_content = (
-        f"# Cover Letter — {job.company}\n"
-        f"**Role:** {job.role}  \n"
-        f"**Job ID:** {job.job_id or 'N/A'}  \n"
-        f"**Link:** {job.link or 'N/A'}\n\n"
-        f"---\n\n"
-        f"{cover_letter}"
-    )
-    save_markdown(cover_md_content, paths["cover_letter_md"])
-    save_docx(
-        content=cover_letter,
-        file_path=paths["cover_letter_docx"],
-        title=f"Cover Letter — {job.role} at {job.company}",
-    )
+    generated_file_keys: list[str] = []
 
-    # ---- Step 8: Upload to Google Drive ----
-    logger.info(f"Uploading files to Drive → Applications/{job.company}/")
-    for key in ("email_md", "cover_letter_md", "cover_letter_docx"):
-        drive.upload_file(paths[key], company_name=job.company)
+    if should_generate_email or should_generate_cover_letter:
+        # ---- Step 5: Build output file paths ----
+        paths = build_output_paths(config.output_dir, job.company, job.job_id)
 
-    # ---- Step 9: Mark as done ----
+        # ---- Step 6: Save requested files ----
+        if recruiter_email is not None:
+            email_md_content = (
+                f"# Recruiter Email — {job.company}\n"
+                f"**Role:** {job.role}  \n"
+                f"**Job ID:** {job.job_id or 'N/A'}  \n"
+                f"**Link:** {job.link or 'N/A'}\n\n"
+                f"---\n\n"
+                f"{recruiter_email}"
+            )
+            if job.will_ai_generate_email_draft_md:
+                save_markdown(email_md_content, paths["email_md"])
+                generated_file_keys.append("email_md")
+            if job.will_ai_generate_email_draft_docs:
+                save_docx(
+                    content=recruiter_email,
+                    file_path=paths["email_docx"],
+                    title=f"Recruiter Email — {job.role} at {job.company}",
+                )
+                generated_file_keys.append("email_docx")
+
+        if cover_letter is not None:
+            cover_md_content = (
+                f"# Cover Letter — {job.company}\n"
+                f"**Role:** {job.role}  \n"
+                f"**Job ID:** {job.job_id or 'N/A'}  \n"
+                f"**Link:** {job.link or 'N/A'}\n\n"
+                f"---\n\n"
+                f"{cover_letter}"
+            )
+            if job.will_ai_generate_coverletter_md:
+                save_markdown(cover_md_content, paths["cover_letter_md"])
+                generated_file_keys.append("cover_letter_md")
+            if job.will_ai_generate_coverletter_docs:
+                save_docx(
+                    content=cover_letter,
+                    file_path=paths["cover_letter_docx"],
+                    title=f"Cover Letter — {job.role} at {job.company}",
+                )
+                generated_file_keys.append("cover_letter_docx")
+
+        # ---- Step 7: Upload generated files to Google Drive ----
+        if generated_file_keys:
+            logger.info(f"Uploading files to Drive → Applications/{job.company}/")
+            for key in generated_file_keys:
+                drive.upload_file(paths[key], company_name=job.company)
+    else:
+        logger.info("Row requests no AI-generated output files")
+
+    # ---- Step 8: Mark as done ----
     sheets.update_status(job.row_index, config.status_draft_generated)
     logger.info(f"Done: {job.company} | {job.role}")
 

@@ -10,7 +10,9 @@ Responsibilities
 * Update individual row status cells with exponential-backoff retry.
 
 Expected spreadsheet columns (order-independent, matched by header name):
-    status | company | role | job_id | link | description | resume_type
+    status | company | role | job_id | link | description | job_full_desc | resume_type
+    | will_ai_generate_email_draft_md | will_ai_generate_email_draft_docs
+    | will_ai_generate_coverletter_md | will_ai_generate_coverletter_docs
 
 Usage
 -----
@@ -66,8 +68,19 @@ class JobRow:
         URL of the job posting — scraped when ``description`` is empty.
     description:
         Optional pre-filled job description.  When None the scraper fetches it.
+    job_full_desc:
+        Optional complete job description from spreadsheet. When sufficiently
+        detailed, this should be used instead of visiting the job link.
     resume_type:
         Key that maps to an optimized resume profile in resumes/ (e.g. "backend").
+    will_ai_generate_email_draft_md:
+        Whether to save recruiter email as Markdown.
+    will_ai_generate_email_draft_docs:
+        Whether to save recruiter email as DOCX.
+    will_ai_generate_coverletter_md:
+        Whether to save cover letter as Markdown.
+    will_ai_generate_coverletter_docs:
+        Whether to save cover letter as DOCX.
     """
 
     row_index: int
@@ -77,7 +90,12 @@ class JobRow:
     job_id: str
     link: str
     description: Optional[str]
+    job_full_desc: Optional[str]
     resume_type: str
+    will_ai_generate_email_draft_md: bool
+    will_ai_generate_email_draft_docs: bool
+    will_ai_generate_coverletter_md: bool
+    will_ai_generate_coverletter_docs: bool
 
 
 class SheetsService:
@@ -125,6 +143,34 @@ class SheetsService:
     # Read operations                                                      #
     # ------------------------------------------------------------------ #
 
+    @staticmethod
+    def _parse_yes_no_flag(record: dict, column_name: str) -> bool:
+        """
+        Parse spreadsheet yes/no flag with blank defaulting to ``True``.
+
+        Supported values are case-insensitive ``yes`` and ``no``.
+        Any unexpected value is treated as ``True`` to preserve current
+        generate-by-default behaviour.
+        """
+        raw_value = str(record.get(column_name, "")).strip().lower()
+        if not raw_value:
+            return True
+        if raw_value == "yes":
+            return True
+        if raw_value == "no":
+            return False
+
+        logger.warning(
+            f"Unexpected value '{record.get(column_name)}' in column '{column_name}' "
+            "— defaulting to 'yes'"
+        )
+        return True
+
+    @staticmethod
+    def _normalize_optional_text(record: dict, column_name: str) -> Optional[str]:
+        """Return stripped cell text or ``None`` when blank."""
+        return str(record.get(column_name, "")).strip() or None
+
     def get_pending_jobs(self) -> list[JobRow]:
         """
         Fetch all rows whose status is in ``config.allowed_statuses``.
@@ -155,9 +201,21 @@ class SheetsService:
                     role=str(record.get("role", "")).strip(),
                     job_id=str(record.get("job_id", "")).strip(),
                     link=str(record.get("link", "")).strip(),
-                    # Treat empty string as absent description
-                    description=str(record.get("description", "")).strip() or None,
+                    description=self._normalize_optional_text(record, "description"),
+                    job_full_desc=self._normalize_optional_text(record, "job_full_desc"),
                     resume_type=str(record.get("resume_type", "default")).strip().lower() or "default",
+                    will_ai_generate_email_draft_md=self._parse_yes_no_flag(
+                        record, "will_ai_generate_email_draft_md"
+                    ),
+                    will_ai_generate_email_draft_docs=self._parse_yes_no_flag(
+                        record, "will_ai_generate_email_draft_docs"
+                    ),
+                    will_ai_generate_coverletter_md=self._parse_yes_no_flag(
+                        record, "will_ai_generate_coverletter_md"
+                    ),
+                    will_ai_generate_coverletter_docs=self._parse_yes_no_flag(
+                        record, "will_ai_generate_coverletter_docs"
+                    ),
                 )
             )
 

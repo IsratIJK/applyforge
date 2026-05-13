@@ -2,7 +2,7 @@
 
 Automated daily job-application assistant.  Reads your job list from a Google
 Spreadsheet, generates a personalized cover letter and recruiter email for each
-opening using OpenAI, saves the files as `.md` and `.docx`, and uploads
+opening using OpenAI, saves requested `.md` / `.docx` outputs per row, and uploads
 everything to Google Drive — all without human intervention.
 
 Runs every day at **1:00 AM Bangladesh Standard Time** via GitHub Actions.
@@ -257,8 +257,8 @@ storage quota errors. This requires a one-time OAuth2 setup.
 
 Create a Google Spreadsheet with these exact column headers in row 1:
 
-| status | company | role | job_id | link | description | resume_type |
-|--------|---------|------|--------|------|-------------|-------------|
+| status | company | role | job_id | link | description | job_full_desc | resume_type | will_ai_generate_email_draft_md | will_ai_generate_email_draft_docs | will_ai_generate_coverletter_md | will_ai_generate_coverletter_docs |
+|--------|---------|------|--------|------|-------------|---------------|-------------|---------------------------------|-----------------------------------|-------------------------------|---------------------------------|
 
 ### Column descriptions
 
@@ -270,7 +270,12 @@ Create a Google Spreadsheet with these exact column headers in row 1:
 | `job_id` | No | Posting ID (used in output file names for uniqueness) |
 | `link` | Yes* | Job posting URL — scraped if `description` is empty |
 | `description` | No | Pre-filled job description (skips scraping) |
+| `job_full_desc` | No | Full job description text. If it has at least 20 words, ApplyForge uses it directly and does not visit the job link. |
 | `resume_type` | Yes | Key matching a profile in `resumes/` (e.g. `backend`, `ai`) |
+| `will_ai_generate_email_draft_md` | No | `yes`/`no`. Blank defaults to `yes`. Controls recruiter email Markdown generation. |
+| `will_ai_generate_email_draft_docs` | No | `yes`/`no`. Blank defaults to `yes`. Controls recruiter email DOCX generation. |
+| `will_ai_generate_coverletter_md` | No | `yes`/`no`. Blank defaults to `yes`. Controls cover letter Markdown generation. |
+| `will_ai_generate_coverletter_docs` | No | `yes`/`no`. Blank defaults to `yes`. Controls cover letter DOCX generation. |
 
 ### Status values
 
@@ -278,18 +283,18 @@ Create a Google Spreadsheet with these exact column headers in row 1:
 |-------|---------|
 | `not applied` | Ready to process — picked up by the automation |
 | `processing` | Currently being processed (set at start of each job) |
-| `draft generated` | Email + cover letter generated and uploaded |
+| `draft generated` | Requested AI drafts generated and uploaded |
 | `reviewed` | You reviewed and approved the draft |
 | `applied` | Application submitted manually |
 | `failed` | Processing failed — see logs for details |
 
 ### Example rows
 
-| status | company | role | job_id | link | description | resume_type |
-|--------|---------|------|--------|------|-------------|-------------|
-| not applied | Stripe | Backend Engineer | JOB-001 | https://stripe.com/jobs/123 | | backend |
-| not applied | OpenAI | ML Engineer | JOB-002 | https://openai.com/jobs/456 | | ai |
-| not applied | Acme Corp | Full Stack Dev | JOB-003 | | We are looking for... | default |
+| status | company | role | job_id | link | description | job_full_desc | resume_type | will_ai_generate_email_draft_md | will_ai_generate_email_draft_docs | will_ai_generate_coverletter_md | will_ai_generate_coverletter_docs |
+|--------|---------|------|--------|------|-------------|---------------|-------------|---------------------------------|-----------------------------------|-------------------------------|---------------------------------|
+| not applied | Stripe | Backend Engineer | JOB-001 | https://stripe.com/jobs/123 | | Full backend role description pasted here with 20+ words so scraping is skipped. | backend | yes | no | yes | yes |
+| not applied | OpenAI | ML Engineer | JOB-002 | https://openai.com/jobs/456 | | | ai | no | yes | yes | no |
+| not applied | Acme Corp | Full Stack Dev | JOB-003 | | We are looking for... | | default | | | | |
 
 ---
 
@@ -627,12 +632,14 @@ At `gpt-4o-mini` pricing, processing 10 jobs costs roughly **$0.002** per run.
 output/
 └── Stripe/
     ├── Stripe_JOB-001_recruiter_email.md
+    ├── Stripe_JOB-001_recruiter_email.docx
     ├── Stripe_JOB-001_cover_letter.md
     └── Stripe_JOB-001_cover_letter.docx
 
 Google Drive (your-folder/):
 └── Stripe/
     ├── Stripe_JOB-001_recruiter_email.md
+    ├── Stripe_JOB-001_recruiter_email.docx
     ├── Stripe_JOB-001_cover_letter.md
     └── Stripe_JOB-001_cover_letter.docx
 ```

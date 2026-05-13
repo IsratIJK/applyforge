@@ -78,10 +78,11 @@
     }
 
     .readme-body table {
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
-      margin: 1.2em 0;
+      margin: 0;
     }
 
     .readme-body th,
@@ -89,6 +90,9 @@
       text-align: left;
       padding: 10px 14px;
       border-bottom: 1px solid var(--line);
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .readme-body th {
@@ -106,6 +110,16 @@
       border: 1px solid var(--line);
       display: block;
       margin: 1.2em auto;
+    }
+
+    .readme-table-scroll {
+      width: 100%;
+      max-width: 100%;
+      margin: 1.2em 0;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 252, 246, 0.72);
     }
 
     .readme-code-block {
@@ -228,6 +242,13 @@
             });
           });
           wrapper.appendChild(btn);
+        });
+
+        el.querySelectorAll("table").forEach((table) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "readme-table-scroll";
+          table.parentNode.insertBefore(wrapper, table);
+          wrapper.appendChild(table);
         });
       } catch (err) {
         el.innerHTML = `<p class="readme-load-error">Could not load guide (${err.message}). <a href="https://github.com/FahimFBA/applyforge/blob/main/README.md">View on GitHub</a></p>`;
