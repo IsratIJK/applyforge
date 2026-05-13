@@ -1,5 +1,8 @@
 # ApplyForge
 
+[![GitHub Release](https://img.shields.io/github/v/release/FahimFBA/applyforge?style=for-the-badge)](https://github.com/FahimFBA/applyforge/releases)
+[![GitHub Tag](https://img.shields.io/github/v/tag/FahimFBA/applyforge?sort=semver&style=for-the-badge)](https://github.com/FahimFBA/applyforge/tags)
+
 Automated daily job-application assistant.  Reads your job list from a Google
 Spreadsheet, generates a personalized cover letter and recruiter email for each
 opening using OpenAI, saves requested `.md` / `.docx` outputs per row, and uploads
