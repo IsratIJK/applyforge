@@ -248,3 +248,6 @@ oauth_client.json
 
 # CI-generated copy of README for docs site (created by docs-site.yml workflow)
 docs/README.md
+
+# Mac specific files
+.DS_Store
