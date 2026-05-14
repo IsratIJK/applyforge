@@ -3,6 +3,8 @@
 [![GitHub Release](https://img.shields.io/github/v/release/FahimFBA/applyforge?style=for-the-badge)](https://github.com/FahimFBA/applyforge/releases)
 [![GitHub Tag](https://img.shields.io/github/v/tag/FahimFBA/applyforge?sort=semver&style=for-the-badge)](https://github.com/FahimFBA/applyforge/tags)
 
+<a href="https://www.producthunt.com/products/applyforge?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-applyforge" target="_blank" rel="noopener noreferrer"><img alt="ApplyForge - Automated daily job-application assistant | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1146724&amp;theme=light&amp;t=1778746822090"></a>
+
 Automated daily job-application assistant.  Reads your job list from a Google
 Spreadsheet, generates a personalized cover letter and recruiter email for each
 opening using OpenAI, saves requested `.md` / `.docx` outputs per row, and uploads
