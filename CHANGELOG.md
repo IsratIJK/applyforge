@@ -7,6 +7,18 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.8.2] — 2026-05-15
+
+### Fixed
+
+- GitHub Release workflow changelog extraction now stops at the next version
+  heading instead of relying on brittle awk escaping.
+- Release process docs now stay aligned with tagged releases by documenting the
+  versioned release fix separately from the earlier `1.8.0` workflow/docs
+  changes.
+
+---
+
 ## [1.8.0] — 2026-05-15
 
 ### Added
