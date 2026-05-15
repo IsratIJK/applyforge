@@ -7,6 +7,31 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.9.0] — 2026-05-15
+
+### Changed
+
+- **Breaking: Spreadsheet lookup now uses ID instead of name.**
+  `GOOGLE_SHEET_NAME` is replaced by `GOOGLE_SHEET_ID` — set it to the
+  alphanumeric ID from the spreadsheet URL
+  (`docs.google.com/spreadsheets/d/<ID>/edit`).
+  Using an ID is unambiguous, works regardless of spreadsheet renames, and
+  avoids `SpreadsheetNotFound` errors caused by name case mismatches.
+- `services/config.py` — `google_sheet_name` field renamed to `google_sheet_id`;
+  reads from `GOOGLE_SHEET_ID` env var with no default (required).
+- `services/sheets.py` — `connect()` uses `open_by_key()` instead of `open()`.
+- `automation.yml` — `GOOGLE_SHEET_NAME` variable replaced with `GOOGLE_SHEET_ID`.
+- `example.env` — documents `GOOGLE_SHEET_ID` with instructions for finding it.
+
+### Migration from v1.8.x
+
+1. Find your spreadsheet ID in the URL:
+   `https://docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/edit`
+2. Replace `GOOGLE_SHEET_NAME` with `GOOGLE_SHEET_ID=<your-id>` in your `.env`.
+3. In GitHub Actions Variables: delete `GOOGLE_SHEET_NAME`, add `GOOGLE_SHEET_ID`.
+
+---
+
 ## [1.8.2] — 2026-05-15
 
 ### Fixed
@@ -286,8 +311,11 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
-[1.6.1]: https://github.com/FahimFBA/applyforge/compare/v1.6.0...v1.6.1
+[1.9.0]: https://github.com/FahimFBA/applyforge/compare/v1.8.2...v1.9.0
+[1.8.2]: https://github.com/FahimFBA/applyforge/compare/v1.8.0...v1.8.2
+[1.8.0]: https://github.com/FahimFBA/applyforge/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/FahimFBA/applyforge/compare/v1.6.2...v1.7.0
+[1.6.1]: https://github.com/FahimFBA/applyforge/compare/v1.6.0...v1.6.1
 [1.6.2]: https://github.com/FahimFBA/applyforge/compare/v1.6.1...v1.6.2
 [1.6.0]: https://github.com/FahimFBA/applyforge/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/FahimFBA/applyforge/compare/v1.4.1...v1.5.0

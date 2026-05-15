@@ -45,8 +45,9 @@ class Config:
     # ------------------------------------------------------------------ #
     # Google Workspace targets                                            #
     # ------------------------------------------------------------------ #
-    google_sheet_name: str = field(
-        default_factory=lambda: os.environ.get("GOOGLE_SHEET_NAME", "Job Applications")
+    google_sheet_id: str = field(
+        # Spreadsheet ID from the URL: docs.google.com/spreadsheets/d/<ID>/edit
+        default_factory=lambda: os.environ.get("GOOGLE_SHEET_ID", "")
     )
     google_drive_parent_folder: str = field(
         # Top-level Drive folder name (used only if google_drive_folder_id is not set)
@@ -197,8 +198,8 @@ class Config:
             errors.append("OPENAI_API_KEY is required")
         if not self.google_service_account:
             errors.append("GOOGLE_SERVICE_ACCOUNT is required (full service-account JSON)")
-        if not self.google_sheet_name:
-            errors.append("GOOGLE_SHEET_NAME is required")
+        if not self.google_sheet_id:
+            errors.append("GOOGLE_SHEET_ID is required")
 
         if errors:
             raise ValueError(f"Missing configuration: {'; '.join(errors)}")

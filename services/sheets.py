@@ -129,10 +129,10 @@ class SheetsService:
         """Open the configured spreadsheet and cache the first worksheet."""
         creds = self._build_credentials()
         self._client = gspread.authorize(creds)
-        spreadsheet = self._client.open(self.config.google_sheet_name)
+        spreadsheet = self._client.open_by_key(self.config.google_sheet_id)
         # Always work on the first (leftmost) sheet
         self._sheet = spreadsheet.sheet1
-        logger.info(f"Connected to Google Sheet: '{self.config.google_sheet_name}'")
+        logger.info(f"Connected to Google Sheet ID: '{self.config.google_sheet_id}'")
 
     def _ensure_connected(self) -> None:
         """Connect on first use (lazy initialisation pattern)."""

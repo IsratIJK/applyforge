@@ -47,7 +47,7 @@ class SheetsServiceTests(unittest.TestCase):
     def test_get_pending_jobs_parses_yes_no_flags_and_defaults_blank_to_yes(self) -> None:
         config = SimpleNamespace(
             google_service_account="{}",
-            google_sheet_name="Jobs",
+            google_sheet_id="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms",
             allowed_statuses=["not applied"],
             max_jobs_per_run=10,
         )
