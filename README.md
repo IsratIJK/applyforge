@@ -211,10 +211,11 @@ APIs & Services → Library → search "Google Drive API" → Enable
 2. Go to the **Keys** tab → **Add Key → Create new key → JSON**.
 3. The key file downloads automatically.
 4. Open the file and copy its **entire contents** (the full JSON object).
-5. This value goes into the `GOOGLE_SERVICE_ACCOUNT` secret.
+5. This value goes into the `GOOGLE_SERVICE_ACCOUNT` **GitHub repository secret**
+   (Settings → Secrets and variables → Actions → Secrets).
 
-> **Security:** Never commit this JSON file. Store it only as a GitHub Secret
-> or in your local `.env` file (which is gitignored).
+> **Security:** Never commit this JSON file. Store it only as a GitHub repository
+> secret or in your local `.env` file (which is gitignored).
 
 ### Step 5 — Create an OAuth2 Client (for Drive uploads)
 
@@ -225,10 +226,16 @@ storage quota errors. This requires a one-time OAuth2 setup.
 2. Click **+ Create Credentials → OAuth 2.0 Client ID**.
 3. If prompted, configure the OAuth consent screen first:
    - User type: **External** → fill in app name (e.g. `ApplyForge`) → save.
-4. Application type: **Desktop app** → name it → **Create**.
-5. Click **Download JSON** → save as `oauth_client.json` in the project root.
+   - Leave the app in **Testing** mode (do not publish).
+4. **Add yourself as a test user** — this is required when the app is in Testing mode.
+   Without this step, Google blocks the OAuth flow with "This app is blocked":
+   - Still on the OAuth consent screen page, go to the **Test users** section.
+   - Click **+ Add Users** and add the Gmail address that owns your Drive and
+     Spreadsheet (the account the automation will run as).
+5. Application type: **Desktop app** → name it → **Create**.
+6. Click **Download JSON** → save as `oauth_client.json` in the project root.
    (`oauth_client.json` is gitignored — it will not be committed.)
-6. Run the token generation script (see [Local Development Setup](#local-development-setup)).
+7. Run the token generation script (see [Local Development Setup](#local-development-setup)).
 
 ### Step 6 — Share the Spreadsheet with the Service Account
 
@@ -263,7 +270,15 @@ storage quota errors. This requires a one-time OAuth2 setup.
 
 ## Spreadsheet Setup
 
-Create a Google Spreadsheet with these exact column headers in row 1:
+Create a Google Spreadsheet and note its **Spreadsheet ID** from the URL:
+
+```
+https://docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/edit
+```
+
+Set this ID as `GOOGLE_SHEET_ID` in your `.env` and GitHub Variables.
+
+Add these exact column headers in row 1:
 
 | status | company | role | job_id | link | description | job_full_desc | resume_type | will_ai_generate_email_draft_md | will_ai_generate_email_draft_docs | will_ai_generate_coverletter_md | will_ai_generate_coverletter_docs |
 |--------|---------|------|--------|------|-------------|---------------|-------------|---------------------------------|-----------------------------------|-------------------------------|---------------------------------|
@@ -411,7 +426,7 @@ Fill in `.env`:
 ```env
 OPENAI_API_KEY=sk-...
 GOOGLE_SERVICE_ACCOUNT={"type":"service_account","project_id":"..."}
-GOOGLE_SHEET_NAME=Job Applications
+GOOGLE_SHEET_ID=1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms   # from spreadsheet URL
 GOOGLE_DRIVE_FOLDER_ID=1AbCdEfGhIjKlMnOpQrStUvWxYz   # from Drive folder URL
 ```
 
@@ -523,7 +538,9 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Secre
 | `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth2 client secret (from `generate_refresh_token.py` output) |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | OAuth2 refresh token (from `generate_refresh_token.py` output) |
 
-> **Flatten the service-account JSON to one line before pasting:**
+> **Optional — flatten the service-account JSON to one line before pasting.**
+> GitHub Secrets handle multi-line values correctly, so flattening is not required.
+> It can help if you run into paste or whitespace issues in certain editors:
 > ```bash
 > python -c "import json, pathlib; print(json.dumps(json.loads(pathlib.Path('service_account.json').read_text(encoding='utf-8')), separators=(',', ':')))"
 > ```
@@ -535,7 +552,7 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Varia
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GOOGLE_DRIVE_FOLDER_ID` | *(required)* | ID of your Drive folder (from folder URL) |
-| `GOOGLE_SHEET_NAME` | `Job Applications` | Exact spreadsheet tab name |
+| `GOOGLE_SHEET_ID` | *(required)* | Spreadsheet ID from the URL |
 | `GOOGLE_DRIVE_PARENT_FOLDER` | `Applications` | Fallback folder name (if ID not set) |
 | `APP_TIMEZONE` | `Asia/Dhaka` | Informational timezone label used in logs/docs |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Model for generation |
@@ -576,7 +593,7 @@ variables.
 | `GOOGLE_OAUTH_CLIENT_ID` | str | *(required for Drive)* | OAuth2 client ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | str | *(required for Drive)* | OAuth2 client secret |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | str | *(required for Drive)* | OAuth2 refresh token |
-| `GOOGLE_SHEET_NAME` | str | `Job Applications` | Spreadsheet name |
+| `GOOGLE_SHEET_ID` | str | *(required)* | Spreadsheet ID from the URL |
 | `GOOGLE_DRIVE_FOLDER_ID` | str | *(recommended)* | Drive folder ID from URL |
 | `GOOGLE_DRIVE_PARENT_FOLDER` | str | `Applications` | Fallback folder name |
 | `OPENAI_MODEL` | str | `gpt-4o-mini` | Generation model |
@@ -696,7 +713,9 @@ The secret is missing or empty.  Check:
 
 ### `SpreadsheetNotFound` error
 
-- The spreadsheet name in `GOOGLE_SHEET_NAME` must match **exactly** (case-sensitive).
+- Verify `GOOGLE_SHEET_ID` is set to the correct spreadsheet ID.
+  The ID is the long alphanumeric string in the spreadsheet URL:
+  `docs.google.com/spreadsheets/d/<SPREADSHEET_ID>/edit`
 - The service account email must have **Editor** access to the spreadsheet.
 
 ### `FileNotFoundError: No resume profile found for type 'backend'`
