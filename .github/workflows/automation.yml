@@ -38,6 +38,7 @@
 #   RESUME_BACKEND               — content of your backend optimized .txt profile
 #   RESUME_AI                    — content of your AI/ML optimized .txt profile
 #   Add more as RESUME_<TYPE> for each resume_type value used in the spreadsheet.
+#   Workflow exports every repository variable whose name starts with RESUME_.
 #   Generate content with: python scripts/process_resume.py
 # ============================================================================
 
@@ -97,6 +98,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # ---- 4. Export all RESUME_* repository variables ----
+      # GitHub Actions repository Variables are not process env vars by default.
+      # Export every RESUME_* key so arbitrary resume types work without YAML edits.
+      - name: Export resume variables
+        env:
+          REPO_VARS_JSON: ${{ toJson(vars) }}
+        run: |
+          python -c "import json, os, pathlib; repo_vars = json.loads(os.environ['REPO_VARS_JSON']); env_path = pathlib.Path(os.environ['GITHUB_ENV']); lines = [f'{key}<<EOF\n{value}\nEOF\n' for key, value in repo_vars.items() if key.startswith('RESUME_') and value]; env_path.open('a', encoding='utf-8').writelines(lines)"
+
       # ---- 4. Run the automation ----
       # Secrets are passed as environment variables — never written to disk.
       # Variables use vars.NAME with a fallback default via the || operator.
@@ -141,13 +151,6 @@ jobs:
 
           # --- Timezone (informational; GitHub Actions runs in UTC) ---
           APP_TIMEZONE: ${{ vars.APP_TIMEZONE || 'Asia/Dhaka' }}
-
-          # --- Resume profiles (stored as GitHub Variables, never in the repo) ---
-          # Add a RESUME_<TYPE> variable for each resume_type used in your spreadsheet.
-          # Generate content with: python scripts/process_resume.py
-          RESUME_DEFAULT: ${{ vars.RESUME_DEFAULT }}
-          RESUME_BACKEND: ${{ vars.RESUME_BACKEND }}
-          RESUME_AI: ${{ vars.RESUME_AI }}
 
         run: python main.py
 

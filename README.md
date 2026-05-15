@@ -113,6 +113,7 @@ applyforge/
 │   └── workflows/
 │       └── automation.yml          ← GitHub Actions daily workflow
 │       └── docs-site.yml           ← GitHub Pages deployment workflow
+│       └── release.yml             ← GitHub Release workflow on pushed tags
 │
 ├── docs/                           ← Static tutorial + reference website
 │   ├── index.html
@@ -138,7 +139,9 @@ applyforge/
 ├── tests/                          ← Unit tests
 │   ├── test_config.py              ← Config validation + singleton behavior
 │   ├── test_document_generator.py  ← Output path + file generation tests
-│   └── test_resume_optimizer.py    ← Resume loading + PDF text cleaning tests
+│   ├── test_main.py                ← Per-job orchestration and output selection
+│   ├── test_resume_optimizer.py    ← Resume loading + PDF text cleaning tests
+│   └── test_sheets.py              ← Spreadsheet row parsing and flag defaults
 │
 ├── raw_resumes/                    ← Drop your PDF resumes here (gitignored)
 │   └── .gitkeep
@@ -359,8 +362,9 @@ GitHub Actions can access them at runtime without storing anything in the repo:
 | `RESUME_AI` | content of `resumes/ai.txt` |
 
 Add a `RESUME_<TYPE>` variable for every `resume_type` key you use in the
-spreadsheet.  The `RESUME_DEFAULT` variable acts as a fallback when no
-type-specific variable is found.
+spreadsheet. The workflow exports every repository variable whose name starts
+with `RESUME_`, so extra types work without editing the YAML.
+`RESUME_DEFAULT` acts as fallback when no type-specific variable is found.
 
 > **For local development only:** You can also paste content into `example.env`
 > under the `RESUME_*` section and copy it to `.env` — the local runtime reads
@@ -395,7 +399,11 @@ pip install -r requirements.txt
 ### Step 4 — Configure environment variables
 
 ```bash
+# macOS / Linux
 cp example.env .env
+
+# Windows PowerShell
+Copy-Item example.env .env
 ```
 
 Fill in `.env`:
@@ -450,7 +458,9 @@ This project uses Python's built-in `unittest` runner. The current suite covers:
 
 - `services/config.py` validation, directory creation, and singleton caching
 - `services/document_generator.py` path building plus Markdown/DOCX output logic
+- `main.py` per-job orchestration, `job_full_desc` handling, and output-flag behavior
 - `services/resume_optimizer.py` text cleaning, missing-file handling, and fallback profile loading
+- `services/sheets.py` row parsing, `yes`/`no` flag normalization, and blank-to-yes defaults
 
 ---
 
@@ -468,7 +478,9 @@ python -m unittest discover -s tests -v
 
 - `test_config.py`: required env validation, auto-created directories, `get_config()` singleton behavior
 - `test_document_generator.py`: sanitized output paths, Markdown writes, DOCX generation behavior
+- `test_main.py`: per-job flow, `job_full_desc` bypass, scraping fallback, and output-toggle logic
 - `test_resume_optimizer.py`: extracted text cleanup, missing PDF errors, resume profile fallback and empty-profile guards
+- `test_sheets.py`: spreadsheet row parsing, output-flag normalization, and blank-column defaults
 
 ### Notes
 
@@ -481,10 +493,23 @@ python -m unittest discover -s tests -v
 
 ### Step 1 — Push the repository to GitHub
 
+If you're the maintainer publishing the canonical repository for the first time:
+
 ```bash
 git remote add origin https://github.com/FahimFBA/applyforge.git
 git push -u origin main
 ```
+
+If you're running this project from your own fork, keep `origin` pointed at your fork and add this repo as `upstream`:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/applyforge.git
+cd applyforge
+git remote add upstream https://github.com/FahimFBA/applyforge.git
+git push -u origin main
+```
+
+In fork-based setups, `origin` should be your fork and `upstream` should be `FahimFBA/applyforge`.
 
 ### Step 2 — Add GitHub Secrets
 
@@ -500,7 +525,7 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Secre
 
 > **Flatten the service-account JSON to one line before pasting:**
 > ```bash
-> cat service_account.json | python3 -m json.tool --compact
+> python -c "import json, pathlib; print(json.dumps(json.loads(pathlib.Path('service_account.json').read_text(encoding='utf-8')), separators=(',', ':')))"
 > ```
 
 ### Step 3 — Add GitHub Variables
@@ -512,6 +537,7 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Varia
 | `GOOGLE_DRIVE_FOLDER_ID` | *(required)* | ID of your Drive folder (from folder URL) |
 | `GOOGLE_SHEET_NAME` | `Job Applications` | Exact spreadsheet tab name |
 | `GOOGLE_DRIVE_PARENT_FOLDER` | `Applications` | Fallback folder name (if ID not set) |
+| `APP_TIMEZONE` | `Asia/Dhaka` | Informational timezone label used in logs/docs |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Model for generation |
 | `OPENAI_TEMPERATURE` | `0.7` | Generation temperature |
 | `MAX_JOBS_PER_RUN` | `10` | Per-run job cap |
@@ -527,8 +553,9 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Varia
 | `RESUME_AI` | *(optional)* | AI/ML-role resume profile text |
 
 Add a `RESUME_<TYPE>` variable for every `resume_type` key used in your
-spreadsheet.  `RESUME_DEFAULT` is the fallback when no type-specific variable
-matches.
+spreadsheet. Workflow exports every repository variable whose name starts with
+`RESUME_`, so new types do not require workflow edits. `RESUME_DEFAULT` is the
+fallback when no type-specific variable matches.
 
 ### Step 4 — Verify the workflow
 

@@ -46,8 +46,10 @@ const tutorials = [
     tags: ["GitHub Actions", "Secrets", "Artifacts"],
     summary: "Move working local setup into GitHub Actions so jobs process on schedule.",
     steps: [
+      "Push project to GitHub first. If you use a fork, keep `origin` on your fork and add `FahimFBA/applyforge` as `upstream`; only maintainers should point `origin` directly at `FahimFBA/applyforge`.",
       "Add required secrets: `OPENAI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT`, and OAuth values.",
       "Add variables like `GOOGLE_DRIVE_FOLDER_ID`, `OPENAI_MODEL`, `MAX_JOBS_PER_RUN`, and `RESUME_DEFAULT`.",
+      "Add one repository variable per resume type as `RESUME_<TYPE>`. Workflow exports every `RESUME_*` variable automatically.",
       "Trigger manual run from Actions UI before relying on cron."
     ]
   },
@@ -117,7 +119,7 @@ const configItems = [
   },
   {
     name: "RESUME_BACKEND / RESUME_AI",
-    detail: "Optional. Type-specific resume profiles. Add RESUME_<TYPE> for each resume_type in your sheet."
+    detail: "Optional examples. Add RESUME_<TYPE> for each resume_type in your sheet. Workflow exports every `RESUME_*` repository variable."
   }
 ];
 
@@ -151,7 +153,7 @@ const statuses = [
 const directories = [
   {
     name: ".github/workflows/",
-    detail: "Scheduled automation, release flow, and docs deployment."
+    detail: "Scheduled automation, docs deployment, and release workflow."
   },
   {
     name: "services/",
@@ -187,6 +189,14 @@ const tests = [
   {
     name: "test_resume_optimizer.py",
     detail: "PDF text cleanup, fallback profile loading, empty-profile guards."
+  },
+  {
+    name: "test_main.py",
+    detail: "Per-job orchestration, full-description bypass, and output-toggle behavior."
+  },
+  {
+    name: "test_sheets.py",
+    detail: "Spreadsheet row parsing and blank `yes`/`no` defaults."
   }
 ];
 
