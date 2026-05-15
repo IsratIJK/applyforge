@@ -40,12 +40,9 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"   # strip leading 'v' from tag name
           # Pull the block between "## [VERSION]" and the next "## [" heading
           BODY=$(awk -v ver="$VERSION" '
-            /^\#\# \[/{
-              if (found) exit
-              if (index($0, "["ver"]")) found=1
-              next
-            }
-            found && /^---$/ { exit }
+            $0 ~ "^## \\[" ver "\\]" { found=1; next }
+            found && /^## \[/ { exit }
+            found && /^---$/ { next }
             found { print }
           ' CHANGELOG.md)
 

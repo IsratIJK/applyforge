@@ -7,6 +7,30 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.8.0] — 2026-05-15
+
+### Added
+
+- GitHub Actions workflow now exports every repository variable whose name
+  starts with `RESUME_`, so new `resume_type` values work without editing
+  `.github/workflows/automation.yml`.
+- Release workflow documentation now includes `release.yml` in the project
+  structure and explains fork-vs-maintainer Git remote setup more clearly.
+- Windows PowerShell copy command examples in `README.md` and `example.env`
+  alongside the existing macOS / Linux examples.
+
+### Changed
+
+- `.github/workflows/automation.yml` now loads resume profile variables
+  dynamically from repository variables instead of hardcoding a small fixed
+  list in the workflow environment block.
+- Docs site tutorial/reference text now explains that all `RESUME_*`
+  repository variables are exported automatically.
+- Service-account JSON flattening examples now use portable `python -c ...`
+  commands instead of shell-specific pipelines.
+
+---
+
 ## [1.7.0] — 2026-05-13
 
 ### Added
